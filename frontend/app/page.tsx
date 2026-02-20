@@ -1,12 +1,13 @@
 import Filter from '@/components/Filter';
+import CardRow from '@/components/CardRow';
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#1E201E] flex-column items-center justify-center p-8">
       
+    <div className="flex items-center">
       {/* Search Bar */}
       <div className="w-full max-w-2xl relative">
-        
         {/* Search Icon */}
         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
           <svg className="w-6 h-6 text-[#697565]"
@@ -34,11 +35,17 @@ export default function Home() {
         <button className="absolute inset-y-2 right-2 bg-[#ECDFCC] text-[#1E201E] px-6 rounded-full font-semibold hover:bg-white transition-colors">
           Search
         </button>
+      </div>
+
+      <Filter />
 
       </div>
 
-      {/* Filter Button*/}
-      <Filter />
+    
+      <CardRow />
+      <CardRow />
+      <CardRow />
+      <CardRow />
 
     </main>
   );
