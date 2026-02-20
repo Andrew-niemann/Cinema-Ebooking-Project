@@ -6,7 +6,7 @@ import Image from 'next/image';
 export default function Card(){
     return (
 
-        <div className="flex-col justify-center items-center m-2 duration-300 ease-in-out hover:scale-110">
+        <div className="flex-col justify-center items-center m-2 py-4 duration-300 ease-in-out hover:scale-110">
             <Link href="/movie" className="shadow-lg">
             <Image
                 src="/cats.jpg"

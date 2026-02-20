@@ -5,11 +5,9 @@ import Card from '@/components/Card';
 
 export default function CardRow() {
     return (
-        <div className="flex-col m-4">
+        <div className="m-4">
             <h1 className="text-[#ECDFCC] text-3xl m-2">Horror</h1>
-            <div className="flex overflow-x-auto overflow-hidden">
-                <Card />
-                <Card />
+            <div className="flex overflow-hidden">
                 <Card />
                 <Card />
                 <Card />

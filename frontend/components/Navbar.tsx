@@ -50,7 +50,7 @@ export default function Navbar() {
 
                 {/* Dropdown Container (Relative so the menu sticks to it) */}
                 <div className="relative">
-                    <button className="bg-[#697565] hover:bg-[#ECDFCC] text-white px-4 py-2 rounded text-sm transition flex items-center gap-2"
+                    <button className="bg-[#697565] hover:bg-[#ECDFCC] text-[#ECDFCC] px-4 py-2 rounded text-sm transition flex items-center gap-2"
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)} /* Toggles the menu */
                     >
                         User
@@ -60,7 +60,7 @@ export default function Navbar() {
                     {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-40 bg-[#697565] rounded shadow-lg py-2 z-50">
 
-                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] hover:bg-gray-100"
+                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]"
                         onClick={() => {
                             toggleAuth();         /* Log out */
                             setIsDropdownOpen(false); /* Close menu */
@@ -69,7 +69,7 @@ export default function Navbar() {
                             Logout
                         </button>
                         
-                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] hover:bg-gray-100"
+                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]"
                         onClick={() => {
                             setIsDropdownOpen(false);
                         }}
@@ -77,7 +77,7 @@ export default function Navbar() {
                             Settings
                         </button>
 
-                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] hover:bg-gray-100"
+                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]"
                         onClick={() => {
                             setIsDropdownOpen(false);
                         }}
