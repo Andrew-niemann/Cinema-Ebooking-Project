@@ -1,6 +1,5 @@
 /* components/CardRow.tsx */
-"use client";
-import { useState } from "react";
+
 import Card from '@/components/Card';
 
 export default function CardRow() {
