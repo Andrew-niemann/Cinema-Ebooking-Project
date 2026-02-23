@@ -1,6 +1,6 @@
 package com.example.backend;
 
-import java.util.List;
+//import java.util.List;
 
 public class Movie {
 
@@ -12,10 +12,11 @@ public class Movie {
     private String rating;
     private String description;
     private String status;
-    private List<String> showTimes;
-    private List<String> showDates;
+    private String showings; // Format:  "2-23-2026 7:00pm 9:00pm, 2-24-2026 7:00pm 9:00pm"
+    //private List<String> showTimes;
+    //private List<String> showDates;
 
-    public Movie(long id, String title, String posterUrl, String trailerUrl, String genre, String rating, String description, String status, List<String> showtimes, List<String> showDates) {
+    public Movie(long id, String title, String posterUrl, String trailerUrl, String genre, String rating, String description, String status, String showings) {
         this.id = id;
         this.title = title;
         this.posterUrl = posterUrl;
@@ -24,8 +25,9 @@ public class Movie {
         this.rating = rating;
         this.description = description;
         this.status = status;
-        this.showTimes = showtimes;
-        this.showDates = showDates;
+        this.showings = showings;
+        //this.showTimes = showtimes;
+        //this.showDates = showDates;
     }
 
     public long getId() {return id;}
@@ -36,8 +38,8 @@ public class Movie {
     public String getRating() {return rating;}
     public String getDescription() {return description;}
     public String getStatus() {return status;}
-    public List<String> getShowTimes() {return showTimes;}
-    public List<String> getShowDates() {return showDates;}
+    public String getShowings() {return showings;}    //public List<String> getShowTimes() {return showTimes;}
+    //public List<String> getShowDates() {return showDates;}
 
     public void setId(long id) {this.id = id;}
     public void setTitle(String title) {this.title = title;}
@@ -47,7 +49,7 @@ public class Movie {
     public void setRating(String rating) {this.rating = rating;}
     public void setDescription(String description) {this.description = description;}
     public void setStatus(String status) {this.status = status;}
-    public void setShowTimes(List<String> showTimes) {this.showTimes = showTimes;}
-    public void setShowDates(List<String> showDates) {this.showDates = showDates;}
-
+    public void setShowings(String showings) {this.showings = showings;}    //
+    //public void setShowTimes(List<String> showTimes) {this.showTimes = showTimes;}
+    //public void setShowDates(List<String> showDates) {this.showDates = showDates;}
 }
