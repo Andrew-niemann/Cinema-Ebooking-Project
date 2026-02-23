@@ -18,8 +18,9 @@ public class MovieController {
             "R",
             "Andy Dufresne (Tim Robbins) is sentenced to two consecutive life terms in prison for the murders of his wife and her lover and is sentenced to a tough prison. However, only Andy knows he didn't commit the crimes. While there, he forms a friendship with Red (Morgan Freeman), experiences brutality of prison life, adapts, helps the warden, etc., all in 19 years.",
             "Currently Running",
-            List.of("1:00 PM", "4:00 PM", "7:00 PM"),
-            List.of("3-5-2026", "3-6-2026", "3-7-2026")
+            "3-5-2026 1:00 PM 4:00 PM 7:00 PM, 3-6-2026 1:00 PM 4:00 PM 7:00 PM, 3-7-2026 1:00 PM 4:00 PM 7:00 PM"
+            //List.of("1:00 PM", "4:00 PM", "7:00 PM"),
+            //List.of("3-5-2026", "3-6-2026", "3-7-2026")
         ),
         new Movie(
             2,
@@ -30,8 +31,9 @@ public class MovieController {
             "R",
             "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
             "Currently Running",
-            List.of("2:00 PM", "5:00 PM", "8:00 PM"),
-            List.of("3-5-2026", "3-6-2026", "3-7-2026")
+            "3-5-2026 2:00 PM 5:00 PM 8:00 PM, 3-6-2026 2:00 PM 5:00 PM 8:00 PM, 3-7-2026 2:00 PM 5:00 PM 8:00 PM"
+             //List.of("2:00 PM", "5:00 PM", "8:00 PM"),
+             //List.of("3-5-2026", "3-6-2026", "3-7-2026")
         ),
         new Movie(
             3,
@@ -42,8 +44,9 @@ public class MovieController {
             "PG-13",
             "When the menace known as the Joker emerges from his mysterious past, he wreaks havoc and chaos on the people of Gotham. The Dark Knight must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
             "Currently Running",
-            List.of("3:00 PM", "6:00 PM", "9:00 PM"),
-            List.of("3-5-2026", "3-6-2026", "3-7-2026")
+            "3-5-2026 3:00 PM 6:00 PM 9:00 PM, 3-6-2026 3:00 PM 6:00 PM 9:00 PM, 3-7-2026 3:00 PM 6:00 PM 9:00 PM"
+            //List.of("3:00 PM", "6:00 PM", "9:00 PM"),
+            //List.of("3-5-2026", "3-6-2026", "3-7-2026")
         ),
         new Movie(
             4,
@@ -54,8 +57,7 @@ public class MovieController {
             "R",
             "The lives of two mob hitmen, a boxer, a gangster's wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
             "Currently Running",
-            List.of("4:00 PM", "7:00 PM", "10:00 PM"),
-            List.of("3-5-2026", "3-6-2026", "3-7-2026")
+            "3-5-2026 4:00 PM 7:00 PM 10:00 PM, 3-6-2026 4:00 PM 7:00 PM 10:00 PM, 3-7-2026 4:00 PM 7:00 PM 10:00 PM"
         ),
         new Movie(
             5,
@@ -66,8 +68,9 @@ public class MovieController {
             "PG-13",
             "Gandalf and Aragorn lead the World of Men against Sauron's army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.",
             "Coming Soon",
-            List.of("5:00 PM", "8:00 PM", "11:00 PM"),
-            List.of("3-8-2026", "3-9-2026", "3-10-2026")
+            "3-8-2026 5:00 PM 8:00 PM 11:00 PM, 3-9-2026 5:00 PM 8:00 PM 11:00 PM, 3-10-2026 5:00 PM 8:00 PM 11:00 PM"
+            //List.of("5:00 PM", "8:00 PM", "11:00 PM"),
+            //List.of("3-8-2026", "3-9-2026", "3-10-2026")
         ),
         new Movie(
             6,
@@ -78,8 +81,9 @@ public class MovieController {
             "PG-13",
             "The presidencies of Kennedy and Johnson, the Vietnam War, the Watergate scandal and other historical events unfold from the perspective of an Alabama man with an IQ of 75, whose only desire is to be reunited with his childhood sweetheart.",
             "Coming Soon",
-            List.of("6:00 PM", "9:00 PM", "12:00 AM"),
-            List.of("3-8-2026", "3-9-2026", "3-10-2026")
+            "3-8-2026 6:00 PM 9:00 PM 12:00 AM, 3-9-2026 6:00 PM 9:00 PM 12:00 AM, 3-10-2026 6:00 PM 9:00 PM 12:00 AM"
+            //List.of("6:00 PM", "9:00 PM", "12:00 AM"),
+            //List.of("3-8-2026", "3-9-2026", "3-10-2026")
         ),
         new Movie(
             7,
@@ -90,8 +94,9 @@ public class MovieController {
             "PG-13",
             "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O., but his tragic past may doom the project and his team to disaster.",
             "Coming Soon",
-            List.of("7:00 PM", "10:00 PM", "1:00 AM"),
-            List.of("3-8-2026", "3-9-2026", "3-10-2026")
+            "3-8-2026 7:00 PM 10:00 PM 1:00 AM, 3-9-2026 7:00 PM 10:00 PM 1:00 AM, 3-10-2026 7:00 PM 10:00 PM 1:00 AM"
+            //List.of("7:00 PM", "10:00 PM", "1:00 AM"),
+            //List.of("3-8-2026", "3-9-2026", "3-10-2026")
         ),
         new Movie(
             8,
@@ -102,8 +107,9 @@ public class MovieController {
             "R",
             "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
             "Coming Soon",
-            List.of("8:00 PM", "11:00 PM", "2:00 AM"),
-            List.of("3-8-2026", "3-9-2026", "3-10-2026")
+            "3-8-2026 8:00 PM 11:00 PM 2:00 AM, 3-9-2026 8:00 PM 11:00 PM 2:00 AM, 3-10-2026 8:00 PM 11:00 PM 2:00 AM"
+            //List.of("8:00 PM", "11:00 PM", "2:00 AM"),
+            //List.of("3-8-2026", "3-9-2026", "3-10-2026")
         ),
         new Movie(
             9,
@@ -114,8 +120,9 @@ public class MovieController {
             "PG-13",
             "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
             "Coming Soon",
-            List.of("9:00 PM", "12:00 AM", "3:00 AM"),
-            List.of("3-8-2026", "3-9-2026", "3-10-2026")
+            "3-8-2026 9:00 PM 12:00 AM 3:00 AM, 3-9-2026 9:00 PM 12:00 AM 3:00 AM, 3-10-2026 9:00 PM 12:00 AM 3:00 AM"
+            //List.of("9:00 PM", "12:00 AM", "3:00 AM"),
+            //List.of("3-8-2026", "3-9-2026", "3-10-2026")
         ),
         new Movie(
             10,
@@ -126,8 +133,9 @@ public class MovieController {
             "G",
             "Lion prince Simba and his father are targeted by his bitter uncle, who wants to ascend the throne himself.",
             "Coming Soon",
-            List.of("10:00 PM", "1:00 AM", "4:00 AM"),
-            List.of("3-10-2026", "3-11-2026", "3-12-2026")
+            "3-8-2026 10:00 PM 1:00 AM 4:00 AM, 3-9-2026 10:00 PM 1:00 AM 4:00 AM, 3-10-2026 10:00 PM 1:00 AM 4:00 AM"
+            //List.of("10:00 PM", "1:00 AM", "4:00 AM"),
+            //List.of("3-10-2026", "3-11-2026", "3-12-2026")
         )
     );
 
@@ -153,7 +161,7 @@ public class MovieController {
 
             // 3. Check Date (if null/empty, skip this filter)
             boolean matchesDate = (showDate == null || showDate.isBlank()) || 
-                movie.getShowDates() != null && movie.getShowDates().contains(showDate);
+                (movie.getShowings() != null && movie.getShowings().contains(showDate));
 
             // The movie must pass ALL three "gates"
             return matchesTitle && matchesGenre && matchesDate;
