@@ -32,5 +32,7 @@ build/
 # Ignore Spring Boot properties files with sensitive info
 /src/main/resources/application.properties
 
+application-dev.properties
+
 ### VS Code ###
 .vscode/
