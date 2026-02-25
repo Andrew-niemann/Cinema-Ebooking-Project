@@ -1,20 +1,37 @@
 package com.example.backend;
 
-//import java.util.List;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Table;
 
+//import java.util.List;
+@Entity
+@Table(name = "movies")
 public class Movie {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    
     private String title;
     private String posterUrl;
     private String trailerUrl;
     private String genre;
     private String rating;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
     private String status;
+
+    @Column(columnDefinition = "TEXT")
     private String showings; // Format:  "2-23-2026 7:00pm 9:00pm, 2-24-2026 7:00pm 9:00pm"
     //private List<String> showTimes;
     //private List<String> showDates;
+    public Movie() {}
 
     public Movie(long id, String title, String posterUrl, String trailerUrl, String genre, String rating, String description, String status, String showings) {
         this.id = id;
