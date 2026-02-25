@@ -10,9 +10,9 @@ export default function Card(){
             <Link href="/movie">
             <Image
                 src="/cats.jpg"
-                alt="Movie Img"
-                width={200}
-                height={400}
+                alt="cats poster"
+                width="200"
+                height="400"
             />
             </Link>
             <h3 className="text-[#ECDFCC]">Cats</h3>

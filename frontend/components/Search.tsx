@@ -6,7 +6,7 @@ import { useState } from "react";
 export default function Search() {
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [filterApplied, setFilter] = useState("Filter")
+    const [filterApplied, setFilter] = useState("No Filter")
 
     return (
         <div className="inline-flex items-center justify-start rounded-full bg-[#3C3D37]">
@@ -50,6 +50,14 @@ export default function Search() {
                 {/* Genre Dropdown Menu */}
                 {isDropdownOpen && (
                     <div className="absolute rounded bg-[#697565]">
+                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]"
+                        onClick={() => {
+                            setIsDropdownOpen(false);
+                            setFilter("No Filter")
+                        }}
+                        >
+                            No Filter
+                        </button>
                         <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]"
                         onClick={() => {
                             setIsDropdownOpen(false);
