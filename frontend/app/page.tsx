@@ -7,10 +7,10 @@ export default function Home() {
       
       <Search />
 
-      <CardRow />
-      <CardRow />
-      <CardRow />
-      <CardRow />
+      <CardRow genre="Horror"/>
+      <CardRow genre="Action"/>
+      <CardRow genre="Romance"/>
+      <CardRow genre="Adventure"/>
 
     </main>
   );
