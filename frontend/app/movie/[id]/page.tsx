@@ -1,4 +1,5 @@
 import Link from 'next/dist/client/link';
+import Showtimes from "@/components/Showtimes";
 
 // Defining the Movie type for better type safety
 type Movie = {
@@ -46,7 +47,10 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
             <p className="text-lg text-[#ECDFCC] mb-2">Genre: {movie.genre}</p>
             <p className="text-lg text-[#ECDFCC] mb-2">Rating: {movie.rating}</p>
             <p className="text-lg text-[#ECDFCC] mb-2">Status: {movie.status}</p>
-            <p className="text-lg text-[#ECDFCC] mb-2">Showing Times: {movie.showings}</p>
+            <div className="mt-6">
+                <h3 className="text-xl text-[#ECDFCC] mb-3 font-semibold">Select Showtime:</h3>
+                <Showtimes rawShowings={movie.showings} movieId={movie.id} />
+            </div>
         </main>
     )
 }

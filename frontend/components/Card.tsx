@@ -22,8 +22,8 @@ export default function Card(props: { movie: Movie }) {
             <Image
                 src={props.movie.posterUrl}
                 alt={props.movie.title + " poster"}
-                width="150"
-                height="300"
+                width="220"
+                height="330"
             />
             </Link>
             <h3 className="text-[#ECDFCC]">{props.movie.title}</h3>
