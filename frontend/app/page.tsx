@@ -33,71 +33,60 @@ export default function Home() {
       });
   }, []);
 
-  // Search handler
-  const handleSearch = (searchTerm: string, filter: string) => {
-    setHasSearched(true);
+  // Search + Filter Handler
+  const handleSearch = (
+    term: string,
+    filterType: string,
+    filterValue: string
+  ) => {
 
     let filtered = movies;
 
-    if (filter === "No Filter") {
-      filtered = movies.filter((movie) =>
-        movie.title.toLowerCase().includes(searchTerm.toLowerCase())
+    // Apply text search
+    if (term.trim() !== "") {
+      filtered = filtered.filter((movie) =>
+        movie.title.toLowerCase().includes(term.toLowerCase())
       );
     }
 
-    if (filter === "Genre") {
-      filtered = movies.filter((movie) =>
-        movie.genre.toLowerCase().includes(searchTerm.toLowerCase())
+    // Apply genre filter
+    if (filterType === "Genre" && filterValue) {
+      filtered = filtered.filter((movie) =>
+        movie.genre.includes(filterValue)
       );
     }
 
-    if (filter === "Date") {
-      filtered = movies.filter((movie) =>
-        movie.showings.toLowerCase().includes(searchTerm.toLowerCase())
+    // Apply status filter
+    if (filterType === "Date" && filterValue) {
+      filtered = filtered.filter((movie) =>
+        movie.status.includes(filterValue)
       );
     }
 
     setSearchResults(filtered);
+    setHasSearched(true);
   };
 
   // Filter movies by genre and status
-  const currentlyShowingMovies = movies.filter((movie) =>
-    movie.status.includes("Currently Running")
-  );
-  const comingSoonMovies = movies.filter((movie) =>
-    movie.status.includes("Coming Soon")
-  );
-  const crimeMovies = movies.filter((movie) =>
-    movie.genre.includes("Crime")
-  );
-  const dramaMovies = movies.filter((movie) =>
-    movie.genre.includes("Drama")
-  );
-  const actionMovies = movies.filter((movie) =>
-    movie.genre.includes("Action")
-  );
-  const adventureMovies = movies.filter((movie) =>
-    movie.genre.includes("Adventure")
-  );
-  const fantasyMovies = movies.filter((movie) =>
-    movie.genre.includes("Fantasy")
-  );
-  const romanceMovies = movies.filter((movie) =>
-    movie.genre.includes("Romance")
-  );
-  const sciFiMovies = movies.filter((movie) =>
-    movie.genre.includes("Sci-Fi")
-  );
-  const animationMovies = movies.filter((movie) =>
-    movie.genre.includes("Animation")
-  );
+  const currentlyShowingMovies = movies.filter(movie => movie.status.includes('Currently Running'));
+  const comingSoonMovies = movies.filter(movie => movie.status.includes('Coming Soon'));
+  const crimeMovies = movies.filter(movie => movie.genre.includes('Crime'));
+  const dramaMovies = movies.filter(movie => movie.genre.includes('Drama'));
+  const actionMovies = movies.filter(movie => movie.genre.includes('Action'));
+  const adventureMovies = movies.filter(movie => movie.genre.includes('Adventure'));
+  const fantasyMovies = movies.filter(movie => movie.genre.includes('Fantasy'));
+  const romanceMovies = movies.filter(movie => movie.genre.includes('Romance'));
+  const sciFiMovies = movies.filter(movie => movie.genre.includes('Sci-Fi'));
+  const animationMovies = movies.filter(movie => movie.genre.includes('Animation'));
 
+  // Return homepage with movie data
   return (
     <main className="min-h-screen bg-[#1E201E] flex-column items-center justify-center p-8">
 
-      <Search onSearch={handleSearch} />
+      <div className="flex justify-start mb-8">
+        <Search onSearch={handleSearch} />
+      </div>
 
-      {/* Show Search Results if user searched */}
       {hasSearched && (
         <CardRow genre="Search Results" movies={searchResults} />
       )}

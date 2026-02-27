@@ -1,111 +1,138 @@
-/* components/Search.tsx */
 "use client";
 
 import { useState } from "react";
 
 type SearchProps = {
-    onSearch: (searchTerm: string, filter: string) => void;
+  onSearch: (term: string, filterType: string, filterValue: string) => void;
 };
 
 export default function Search({ onSearch }: SearchProps) {
 
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [filterApplied, setFilter] = useState("No Filter");
-    const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("No Filter");
+  const [filterValue, setFilterValue] = useState("");
 
-    const handleSearch = () => {
-        onSearch(searchTerm, filterApplied);
-    };
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [showValueDropdown, setShowValueDropdown] = useState(false);
 
-    return (
-        <div className="inline-flex items-center justify-start rounded-full bg-[#3C3D37] relative">
+  const genres = [
+    "Crime",
+    "Drama",
+    "Action",
+    "Adventure",
+    "Fantasy",
+    "Romance",
+    "Sci-Fi",
+    "Animation"
+  ];
 
-            {/* Search Icon */}
-            <div className="flex absolute pl-4">
-                <svg
-                    className="w-6 h-6 text-[#697565]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                </svg>
-            </div>
+  const statuses = [
+    "Currently Running",
+    "Coming Soon"
+  ];
 
-            {/* Input Field */}
-            <input
-                className="w-120 py-4 p-12 text-lg text-[#ECDFCC] focus:outline-none"
-                type="text"
-                placeholder="Search for a movie..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                        handleSearch();
-                    }
-                }}
-            />
+  const handleSearch = () => {
+    onSearch(searchTerm, filterType, filterValue);
+  };
 
-            {/* Search Button */}
+  return (
+    <div className="flex items-center bg-[#3C3D37] rounded-full p-2 relative">
+
+      {/* Search input */}
+      <input
+        className="w-96 px-4 py-2 text-lg text-[#ECDFCC] bg-transparent focus:outline-none"
+        type="text"
+        placeholder="Search for a movie..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+
+      {/* Search button */}
+      <button
+        className="p-2 mx-2 inset-y-2 right-2 bg-[#697565] text-[#ECDFCC] px-6 rounded-full font-semibold hover:bg-white hover:text-[#1E201E] transition-colors"
+        onClick={handleSearch}
+      >
+        Search
+      </button>
+
+      {/* Filter type - first dropdown menu */}
+      <div className="relative">
+        <button
+          className="p-2 mx-2 inset-y-2 right-2 bg-[#697565] text-[#ECDFCC] px-6 rounded-full font-semibold hover:bg-white hover:text-[#1E201E] transition-colors"
+          onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+        >
+          {filterType}
+        </button>
+
+        {showTypeDropdown && (
+          <div className="absolute mt-2 bg-[#697565] rounded shadow w-40 z-50">
             <button
-                className="p-2 mx-2 mr-4 inset-y-2 right-2 bg-[#697565] text-[#ECDFCC] px-6 rounded-full font-semibold hover:bg-white hover:text-[#1E201E] transition-colors"
-                onClick={() => {
-                    handleSearch();
-                }}
+              className="block w-full text-left px-4 py-2 hover:bg-white hover:text-black"
+              onClick={() => {
+                setFilterType("No Filter");
+                setFilterValue("");
+                setShowTypeDropdown(false);
+              }}
             >
-                Search
+              No Filter
             </button>
 
-            {/* Filter Button */}
-            <div className="relative">
+            <button
+              className="block w-full text-left px-4 py-2 hover:bg-white hover:text-black"
+              onClick={() => {
+                setFilterType("Genre");
+                setFilterValue("");
+                setShowTypeDropdown(false);
+              }}
+            >
+              Genre
+            </button>
+
+            <button
+              className="block w-full text-left px-4 py-2 hover:bg-white hover:text-black"
+              onClick={() => {
+                setFilterType("Date");
+                setFilterValue("");
+                setShowTypeDropdown(false);
+              }}
+            >
+              Date
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Filter value - second dropdown menu */}
+      {filterType !== "No Filter" && (
+        <div className="relative">
+          <button
+            className="p-2 mx-2 inset-y-2 right-2 bg-[#697565] text-[#ECDFCC] px-6 rounded-full font-semibold hover:bg-white hover:text-[#1E201E] transition-colors"
+            onClick={() => setShowValueDropdown(!showValueDropdown)}
+          >
+            {filterValue || "Select"}
+          </button>
+
+          {showValueDropdown && (
+            <div className="absolute mt-2 bg-[#697565] rounded shadow w-48 max-h-60 overflow-y-auto z-50">
+
+              {(filterType === "Genre" ? genres : statuses).map((item) => (
                 <button
-                    className="p-2 mx-2 mr-4 inset-y-2 right-2 bg-[#697565] text-[#ECDFCC] px-6 rounded-full font-semibold hover:bg-white hover:text-[#1E201E] transition-colors"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  key={item}
+                  className="block w-full text-left px-4 py-2 hover:bg-white hover:text-black"
+                  onClick={() => {
+                    setFilterValue(item);
+                    setShowValueDropdown(false);
+                  }}
                 >
-                    {filterApplied}
+                  {item}
                 </button>
+              ))}
 
-                {/* Genre Dropdown Menu */}
-                {isDropdownOpen && (
-                    <div className="absolute rounded bg-[#697565] mt-2 w-full">
-                        <button
-                            className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]"
-                            onClick={() => {
-                                setIsDropdownOpen(false);
-                                setFilter("No Filter");
-                            }}
-                        >
-                            No Filter
-                        </button>
-
-                        <button
-                            className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]"
-                            onClick={() => {
-                                setIsDropdownOpen(false);
-                                setFilter("Genre");
-                            }}
-                        >
-                            Genre
-                        </button>
-
-                        <button
-                            className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]"
-                            onClick={() => {
-                                setIsDropdownOpen(false);
-                                setFilter("Date");
-                            }}
-                        >
-                            Date
-                        </button>
-                    </div>
-                )}
             </div>
+          )}
         </div>
-    );
+      )}
+
+    </div>
+  );
 }
