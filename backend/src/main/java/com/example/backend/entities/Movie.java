@@ -1,20 +1,26 @@
-package com.example.backend;
+package com.example.backend.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.CascadeType;
+
+import java.util.ArrayList;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
 
-//import java.util.List;
+import java.util.List;
+
 @Entity
 @Table(name = "movies")
 public class Movie {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     
     private String title;
     private String posterUrl;
@@ -27,13 +33,17 @@ public class Movie {
 
     private String status;
 
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true) 
+    private List<FavoriteMovie> favoritedBy = new ArrayList<>();
+
     @Column(columnDefinition = "TEXT")
     private String showings; // Format:  "2-23-2026 7:00pm 9:00pm, 2-24-2026 7:00pm 9:00pm"
     //private List<String> showTimes;
     //private List<String> showDates;
+
     public Movie() {}
 
-    public Movie(long id, String title, String posterUrl, String trailerUrl, String genre, String rating, String description, String status, String showings) {
+    public Movie(Long id, String title, String posterUrl, String trailerUrl, String genre, String rating, String description, String status, String showings) {
         this.id = id;
         this.title = title;
         this.posterUrl = posterUrl;
@@ -47,7 +57,7 @@ public class Movie {
         //this.showDates = showDates;
     }
 
-    public long getId() {return id;}
+    public Long getId() {return id;}
     public String getTitle() {return title;}
     public String getPosterUrl() {return posterUrl;}
     public String getTrailerUrl() {return trailerUrl;}
@@ -58,7 +68,7 @@ public class Movie {
     public String getShowings() {return showings;}    //public List<String> getShowTimes() {return showTimes;}
     //public List<String> getShowDates() {return showDates;}
 
-    public void setId(long id) {this.id = id;}
+    public void setId(Long id) {this.id = id;}
     public void setTitle(String title) {this.title = title;}
     public void setPosterUrl(String posterUrl) {this.posterUrl = posterUrl;}
     public void setTrailerUrl(String trailerUrl) {this.trailerUrl = trailerUrl;}

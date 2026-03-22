@@ -1,17 +1,20 @@
-package com.example.backend;
+package com.example.backend.controllers;
 
 import org.springframework.web.bind.annotation.*;
+
+import com.example.backend.entities.Movie;
+import com.example.backend.repositories.MoviesRepository;
+
 import java.util.List;
-import com.example.backend.MoviesJPARepository;
 
 @CrossOrigin(origins = "*") // <- allows requests from any origin
 @RestController
 @RequestMapping("/api/movies")
 public class MovieController {
 
-    private final MoviesJPARepository movieRepository;
+    private final MoviesRepository movieRepository;
 
-    public MovieController(MoviesJPARepository movieRepository) {
+    public MovieController(MoviesRepository movieRepository) {
         this.movieRepository = movieRepository;
     }
 
@@ -48,13 +51,13 @@ public class MovieController {
     }
 
     @GetMapping("/{id}")
-    public Movie getMovieById(@PathVariable Integer id) {
+    public Movie getMovieById(@PathVariable Long id) {
         return movieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Movie not found with ID: " + id));
     }
 
     @DeleteMapping("/{id}")
-    public void deleteMovie(@PathVariable Integer id) {
+    public void deleteMovie(@PathVariable Long id) {
         movieRepository.deleteById(id);
     }
 }

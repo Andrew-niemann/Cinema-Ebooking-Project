@@ -1,16 +1,16 @@
-package com.example.backend;  // use your package name
+package com.example.backend.repositories;  // use your package name
 
-import com.example.backend.Movie;   // path to your Movie entity
+import com.example.backend.entities.Movie;   // path to your Movie entity
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface MoviesJPARepository extends JpaRepository<Movie, Integer> {
+public interface MoviesRepository extends JpaRepository<Movie, Long> {
     
     // Optional: custom query methods
-    
+
     // Find movies by genre
     List<Movie> findByGenre(String genre);
     
