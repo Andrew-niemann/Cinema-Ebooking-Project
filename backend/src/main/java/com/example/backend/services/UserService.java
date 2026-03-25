@@ -9,6 +9,9 @@ import javax.smartcardio.Card;
 
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import com.example.backend.entities.Address;
 import com.example.backend.entities.FavoriteMovie;
 import com.example.backend.entities.Movie;
@@ -36,13 +39,16 @@ public class UserService {
     private final FavoriteMovieRepo favoriteRepository;
     private final MoviesRepository movieRepository;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Autowired
-    public UserService(UserRepository userRepository, FavoriteMovieRepo favoriteRepository, MoviesRepository movieRepository, EmailService emailService) {
+    public UserService(UserRepository userRepository, FavoriteMovieRepo favoriteRepository, MoviesRepository movieRepository, EmailService emailService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.favoriteRepository = favoriteRepository;
         this.movieRepository = movieRepository;
         this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public UserInfo getUserInfo(String email) {
@@ -154,6 +160,13 @@ public class UserService {
         if (dto.getPhone() != null && !dto.getPhone().isBlank()) {
             user.setPhone(dto.getPhone());
             message += "phone: " + dto.getPhone() + "\n";
+        }
+
+        if (dto.getNewPassword() != null && !dto.getNewPassword().isEmpty()) {
+            if (dto.getOldPassword() == null || !passwordEncoder.matches(dto.getOldPassword(), user.getPasswordHash())) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Incorrect old password");
+            }
+            user.setPasswordHash(passwordEncoder.encode(dto.getNewPassword()));
         }
 
         // --- Address (ONLY ONE) ---

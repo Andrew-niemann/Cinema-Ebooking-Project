@@ -3,6 +3,8 @@ package com.example.backend.dtos;
 public class UpdateUserDto {
     private String name;
     private String phone;
+    private String newPassword;
+    private String oldPassword;
     private AddressDto address;
     private CardDto newCard; // optional
 
@@ -38,5 +40,23 @@ public class UpdateUserDto {
     public void setNewCard(CardDto newCard) {
         this.newCard = newCard;
     }
+
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
+
+    public String getOldPassword() {
+        return oldPassword;
+    }
+
+    public void setOldPassword(String oldPassword) {
+        this.oldPassword = oldPassword;
+    }
+
+    
     
 }
