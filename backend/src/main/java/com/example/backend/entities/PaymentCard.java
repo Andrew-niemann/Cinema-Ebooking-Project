@@ -1,5 +1,8 @@
 package com.example.backend.entities;
 
+import com.example.backend.CryptoConverter;
+
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,8 +17,13 @@ public class PaymentCard {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String last4Digits;
-    private String brand;
+    @Convert(converter = CryptoConverter.class)
+    private String digits;
+
+    private String expirationMonth;
+    private String expirationYear;
+    
+    @Convert(converter = CryptoConverter.class)    private String cvv;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -25,19 +33,44 @@ public class PaymentCard {
         return id;
     }
 
-    public String getLast4Digits() {
-        return last4Digits;
+    public String getDigits() {
+        return digits;
     }
 
-    public void setLast4Digits(String last4Digits) {
-        this.last4Digits = last4Digits;
+    public void setDigits(String digits) {
+        this.digits = digits;
     }
 
-    public String getBrand() {
-        return brand;
+    public String getExpirationMonth() {
+        return expirationMonth;
     }
 
-    public void setBrand(String brand) {
-        this.brand = brand;
+    public void setExpirationMonth(String expirationMonth) {
+        this.expirationMonth = expirationMonth;
     }
+
+    public String getExpirationYear() {
+        return expirationYear;
+    }
+
+    public void setExpirationYear(String expirationYear) {
+        this.expirationYear = expirationYear;
+    }
+
+    public String getCvv() {
+        return cvv;
+    }
+
+    public void setCvv(String cvv) {
+        this.cvv = cvv;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
 }

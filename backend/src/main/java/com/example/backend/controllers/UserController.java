@@ -2,7 +2,9 @@ package com.example.backend.controllers;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.example.backend.dtos.UpdateUserDto;
 import com.example.backend.dtos.UserInfo;
 import com.example.backend.services.UserService;
 
@@ -41,14 +44,21 @@ public class UserController {
     }
 
     @DeleteMapping("/remove-favorite")
-    public ResponseEntity<String> removeFavoriteMovie(
-            @RequestParam Long movieId,
-            Authentication authentication) {
+    public ResponseEntity<String> removeFavoriteMovie(@RequestParam Long movieId, Authentication authentication) {
 
         String email = authentication.getName(); // get logged-in user
         userService.removeFavoriteMovie(email, movieId);
 
         return ResponseEntity.ok("Movie removed from favorites");
+    }
+
+    @PatchMapping("/update-profile")
+    public ResponseEntity<UserInfo> updateProfile(@RequestBody UpdateUserDto dto, Authentication auth) {
+        String email = auth.getName();
+
+        UserInfo updatedUser = userService.updateUserProfile(email, dto);
+
+        return ResponseEntity.ok(updatedUser);
     }
 
 }

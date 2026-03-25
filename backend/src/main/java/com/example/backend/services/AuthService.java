@@ -21,7 +21,9 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.backend.enums.Role;
 import com.example.backend.enums.UserStatus;
 import com.example.backend.dtos.AddressDto;
-import com.example.backend.entities.Address;
+import com.example.backend.entities.Address; 
+import com.example.backend.entities.PaymentCard;
+import com.example.backend.dtos.CardDto;
 
 @Service
 public class AuthService {

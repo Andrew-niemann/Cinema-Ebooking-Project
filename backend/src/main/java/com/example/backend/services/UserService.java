@@ -4,6 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+
+import javax.smartcardio.Card;
+
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import com.example.backend.entities.Address;
@@ -15,8 +18,12 @@ import com.example.backend.repositories.VerificationTokenRepository;
 import com.example.backend.dtos.AddressDto;
 import com.example.backend.dtos.CardDto;
 import com.example.backend.dtos.MovieDto;
+import com.example.backend.dtos.UpdateUserDto;
 import com.example.backend.dtos.UserInfo;
+import com.example.backend.services.EmailService;
 
+import com.example.backend.entities.PaymentCard;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.List;
 import com.example.backend.repositories.FavoriteMovieRepo;
@@ -28,12 +35,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final FavoriteMovieRepo favoriteRepository;
     private final MoviesRepository movieRepository;
+    private final EmailService emailService;
 
     @Autowired
-    public UserService(UserRepository userRepository, FavoriteMovieRepo favoriteRepository, MoviesRepository movieRepository) {
+    public UserService(UserRepository userRepository, FavoriteMovieRepo favoriteRepository, MoviesRepository movieRepository, EmailService emailService) {
         this.userRepository = userRepository;
         this.favoriteRepository = favoriteRepository;
         this.movieRepository = movieRepository;
+        this.emailService = emailService;
     }
 
     public UserInfo getUserInfo(String email) {
@@ -60,8 +69,10 @@ public class UserService {
         if (user.getCards() != null) {
             cardDtos = user.getCards().stream()
                 .map(card -> new CardDto(
-                    card.getLast4Digits(),
-                    card.getBrand()
+                    card.getDigits(),
+                    card.getExpirationYear(),
+                    card.getExpirationMonth(),
+                    card.getCvv()
                 ))
                 .toList();
         }
@@ -126,5 +137,117 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Favorite not found"));
 
         favoriteRepository.delete(favorite);
+    }
+
+    public UserInfo updateUserProfile(String email, UpdateUserDto dto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String message = "";
+
+        // --- Update basic info ---
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            user.setName(dto.getName());
+            message += "name: " + dto.getName() + "\n";
+        }
+
+        if (dto.getPhone() != null && !dto.getPhone().isBlank()) {
+            user.setPhone(dto.getPhone());
+            message += "phone: " + dto.getPhone() + "\n";
+        }
+
+        // --- Address (ONLY ONE) ---
+        if (dto.getAddress() != null) {
+            AddressDto addrDto = dto.getAddress();
+
+            Address address = user.getAddress();
+            if (address == null) {
+                address = new Address();
+            }
+
+            if (addrDto.getStreet() != null)
+                address.setStreet(addrDto.getStreet());
+
+            if (addrDto.getCity() != null)
+                address.setCity(addrDto.getCity());
+
+            if (addrDto.getState() != null)
+                address.setState(addrDto.getState());
+
+            if (addrDto.getZip() != null)
+                address.setZip(addrDto.getZip());
+
+            message += "address: " + address.getStreet() + ", " + address.getCity() + ", " + address.getState() + " " + address.getZip() + "\n";
+            user.setAddress(address); // replaces existing (only one allowed)
+        }
+
+        // --- Cards (MAX 3) ---
+        if (dto.getNewCard() != null) {
+            if (user.getCards().size() >= 3) {
+                throw new RuntimeException("Cannot have more than 3 cards");
+            }
+
+            CardDto cardDto = dto.getNewCard();
+
+            PaymentCard card = new PaymentCard();
+            card.setDigits(cardDto.getDigits());
+            card.setExpirationYear(cardDto.getExpirationYear());
+            card.setExpirationMonth(cardDto.getExpirationMonth());
+            card.setCvv(cardDto.getCvv());
+
+            card.setUser(user); // important for relationship
+
+            user.getCards().add(card);
+            message += "card info: updated\n";
+        }
+
+        userRepository.save(user);
+
+        AddressDto addressDto = null;
+        if (user.getAddress() != null) {
+            Address address = user.getAddress();
+            addressDto = new AddressDto(
+                address.getStreet(),
+                address.getCity(),
+                address.getState(),
+                address.getZip()
+            );
+        }
+
+        List<CardDto> cardDtos = new ArrayList<>();
+        if (user.getCards() != null) {
+            cardDtos = user.getCards().stream()
+                .map(card -> new CardDto(
+                    card.getDigits(),
+                    card.getExpirationYear(),
+                    card.getExpirationMonth(),
+                    card.getCvv()
+                ))
+                .toList();
+        }
+        
+
+        List<MovieDto> favoriteDtos = favoriteRepository.findByUser(user)
+        .stream()
+        .map(fav -> new MovieDto(
+            fav.getMovie().getId(),
+            fav.getMovie().getTitle(),
+            fav.getMovie().getPosterUrl()
+        ))
+        .toList();
+
+        emailService.sendVerificationEmail(user.getEmail(), "update info", message);
+
+        return new UserInfo(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getPhone(),
+                user.getStatus().name(),
+                user.getRole().name(),
+                addressDto,
+                cardDtos,
+                favoriteDtos
+        );
     }
 }
