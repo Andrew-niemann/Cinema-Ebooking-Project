@@ -1,37 +1,52 @@
 package com.example.backend.dtos;
 
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
 public class CardDto {
 
-    private String last4Digits;
-    private String brand;
+    private String digits;
+    private String expirationMonth;
+    private String expirationYear;
+    private String cvv;
 
-    public CardDto() {
-        // default constructor for frameworks (e.g., Jackson)
+    public CardDto(String digits, String expirationYear, String expirationMonth, String cvv) {
+        this.digits = digits;
+        this.expirationYear = expirationYear;
+        this.expirationMonth = expirationMonth;
+        this.cvv = cvv;
     }
 
-    // Constructor to map from entity
-    public CardDto(String last4Digits, String brand) {
-
-        this.last4Digits = last4Digits;
-        this.brand = brand;
+    public String getDigits() {
+        return digits;
     }
 
-    // Getters and setters
-
-    public String getLast4Digits() {
-        return last4Digits;
+    public void setDigits(String digits) {
+        this.digits = digits;
     }
 
-    public void setLast4Digits(String last4Digits) {
-        this.last4Digits = last4Digits;
+    public String getExpirationMonth() {
+        return expirationMonth;
     }
 
-    public String getBrand() {
-        return brand;
+    public void setExpirationMonth(String expirationMonth) {
+        this.expirationMonth = expirationMonth;
     }
 
-    public void setBrand(String brand) {
-        this.brand = brand;
+    public String getExpirationYear() {
+        return expirationYear;
+    }
+
+    public void setExpirationYear(String expirationYear) {
+        this.expirationYear = expirationYear;
+    }
+
+    public String getCvv() {
+        return cvv;
+    }
+
+    public void setCvv(String cvv) {
+        this.cvv = cvv;
     }
 
 }

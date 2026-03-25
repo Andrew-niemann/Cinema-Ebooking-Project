@@ -21,7 +21,9 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.backend.enums.Role;
 import com.example.backend.enums.UserStatus;
 import com.example.backend.dtos.AddressDto;
-import com.example.backend.entities.Address;
+import com.example.backend.entities.Address; 
+import com.example.backend.entities.PaymentCard;
+import com.example.backend.dtos.CardDto;
 
 @Service
 public class AuthService {
@@ -76,6 +78,24 @@ public class AuthService {
             address.setState(dto.getState());
             address.setZip(dto.getZip());
             user.setAddress(address);
+        }
+
+        if (request.getCard() != null) {
+            if (user.getCards().size() >= 3) {
+                throw new RuntimeException("Cannot have more than 3 cards");
+            }
+
+            CardDto cardDto = request.getCard();
+
+            PaymentCard card = new PaymentCard();
+            card.setDigits(cardDto.getDigits());
+            card.setExpirationYear(cardDto.getExpirationYear());
+            card.setExpirationMonth(cardDto.getExpirationMonth());
+            card.setCvv(cardDto.getCvv());
+
+            card.setUser(user); // important for relationship
+
+            user.getCards().add(card);
         }
 
 

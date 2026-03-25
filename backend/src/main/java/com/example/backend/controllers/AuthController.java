@@ -16,6 +16,8 @@ import com.example.backend.entities.User;
 import com.example.backend.services.JwtService;
 import com.mysql.cj.x.protobuf.MysqlxSession.Reset;
 import com.example.backend.repositories.UserRepository;
+import com.example.backend.repositories.VerificationTokenRepository;
+import jakarta.transaction.Transactional;
 
 @CrossOrigin(origins = "*") // <- allows requests from any origin
 @RestController
@@ -23,10 +25,13 @@ import com.example.backend.repositories.UserRepository;
 public class AuthController {
 
     private final AuthService authService;
+    private final VerificationTokenRepository tokenRepository;
+
 
     @Autowired
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, VerificationTokenRepository tokenRepository) {
         this.authService = authService;
+        this.tokenRepository = tokenRepository;
     }
 
     @Autowired
@@ -76,12 +81,14 @@ public class AuthController {
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
 
+    @Transactional
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) {
             return ResponseEntity.status(404).body("User not found");
         }
 
+        tokenRepository.deleteByUserId(id);
         userRepository.deleteById(id);
         return ResponseEntity.ok("User deleted successfully");
     }

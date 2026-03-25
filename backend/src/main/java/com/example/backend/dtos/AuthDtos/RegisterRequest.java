@@ -1,6 +1,7 @@
 package com.example.backend.dtos.AuthDtos;
 
 import com.example.backend.dtos.AddressDto;
+import com.example.backend.dtos.CardDto;
 
 public class RegisterRequest {
 
@@ -9,6 +10,7 @@ public class RegisterRequest {
     private String name;
     private String phone;
     private AddressDto address;
+    private CardDto card;
 
     // getters and setters
 
@@ -26,4 +28,7 @@ public class RegisterRequest {
 
     public AddressDto getAddress() { return address; }
     public void setAddress(AddressDto address) { this.address = address; }
+
+    public CardDto getCard() { return card; }
+    public void setCard(CardDto card) { this.card = card; }
 }
