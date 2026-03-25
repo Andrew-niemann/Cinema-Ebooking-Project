@@ -5,6 +5,7 @@ import jakarta.persistence.ManyToOne;
 
 public class CardDto {
 
+    private Long id;
     private String digits;
     private String expirationMonth;
     private String expirationYear;
@@ -47,6 +48,14 @@ public class CardDto {
 
     public void setCvv(String cvv) {
         this.cvv = cvv;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
 }

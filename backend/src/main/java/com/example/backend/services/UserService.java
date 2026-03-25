@@ -74,12 +74,16 @@ public class UserService {
         List<CardDto> cardDtos = new ArrayList<>();
         if (user.getCards() != null) {
             cardDtos = user.getCards().stream()
-                .map(card -> new CardDto(
-                    card.getDigits(),
-                    card.getExpirationYear(),
-                    card.getExpirationMonth(),
-                    card.getCvv()
-                ))
+                .map(c -> {
+                    CardDto cardDto = new CardDto(
+                        c.getDigits(),
+                        c.getExpirationYear(),
+                        c.getExpirationMonth(),
+                        c.getCvv()
+                    );
+                    cardDto.setId(c.getId()); // include the ID
+                    return cardDto;
+                })
                 .toList();
         }
         
@@ -195,22 +199,32 @@ public class UserService {
         }
 
         // --- Cards (MAX 3) ---
-        if (dto.getNewCard() != null) {
-            if (user.getCards().size() >= 3) {
-                throw new RuntimeException("Cannot have more than 3 cards");
+        if (dto.getCard() != null) {
+            CardDto cardDto = dto.getCard();
+            PaymentCard card;
+
+            if (cardDto.getId() != null) {
+                // Try to update existing card
+                card = user.getCards().stream()
+                        .filter(c -> c.getId().equals(cardDto.getId()))
+                        .findFirst()
+                        .orElseThrow(() -> new RuntimeException("Card not found"));
+            } else {
+                // Creating new card
+                if (user.getCards().size() >= 3) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot have more than 3 cards");
+                }
+                card = new PaymentCard();
+                card.setUser(user); // important for relationship
+                user.getCards().add(card);
             }
 
-            CardDto cardDto = dto.getNewCard();
-
-            PaymentCard card = new PaymentCard();
+            // Set/Update fields
             card.setDigits(cardDto.getDigits());
             card.setExpirationYear(cardDto.getExpirationYear());
             card.setExpirationMonth(cardDto.getExpirationMonth());
             card.setCvv(cardDto.getCvv());
 
-            card.setUser(user); // important for relationship
-
-            user.getCards().add(card);
             message += "card info: updated\n";
         }
 
@@ -230,12 +244,16 @@ public class UserService {
         List<CardDto> cardDtos = new ArrayList<>();
         if (user.getCards() != null) {
             cardDtos = user.getCards().stream()
-                .map(card -> new CardDto(
-                    card.getDigits(),
-                    card.getExpirationYear(),
-                    card.getExpirationMonth(),
-                    card.getCvv()
-                ))
+                .map(c -> {
+                    CardDto cardDto = new CardDto(
+                        c.getDigits(),
+                        c.getExpirationYear(),
+                        c.getExpirationMonth(),
+                        c.getCvv()
+                    );
+                    cardDto.setId(c.getId()); // include the ID
+                    return cardDto;
+                })
                 .toList();
         }
         

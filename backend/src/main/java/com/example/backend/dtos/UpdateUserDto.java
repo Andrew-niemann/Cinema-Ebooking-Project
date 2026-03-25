@@ -6,7 +6,7 @@ public class UpdateUserDto {
     private String newPassword;
     private String oldPassword;
     private AddressDto address;
-    private CardDto newCard; // optional
+    private CardDto card; // optional
 
     // getters/setters
     public String getName() {
@@ -33,12 +33,12 @@ public class UpdateUserDto {
         this.address = address;
     }
 
-    public CardDto getNewCard() {
-        return newCard;
+    public CardDto getCard() {
+        return card;
     }
 
-    public void setNewCard(CardDto newCard) {
-        this.newCard = newCard;
+    public void setCard(CardDto card) {
+        this.card = card;
     }
 
     public String getNewPassword() {
