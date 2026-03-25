@@ -80,6 +80,24 @@ public class AuthService {
             user.setAddress(address);
         }
 
+        if (request.getCard() != null) {
+            if (user.getCards().size() >= 3) {
+                throw new RuntimeException("Cannot have more than 3 cards");
+            }
+
+            CardDto cardDto = request.getCard();
+
+            PaymentCard card = new PaymentCard();
+            card.setDigits(cardDto.getDigits());
+            card.setExpirationYear(cardDto.getExpirationYear());
+            card.setExpirationMonth(cardDto.getExpirationMonth());
+            card.setCvv(cardDto.getCvv());
+
+            card.setUser(user); // important for relationship
+
+            user.getCards().add(card);
+        }
+
 
         // 4️⃣ Set defaults
         user.setRole(Role.CUSTOMER);
