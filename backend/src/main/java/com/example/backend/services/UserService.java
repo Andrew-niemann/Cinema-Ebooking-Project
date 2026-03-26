@@ -1,36 +1,28 @@
 package com.example.backend.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-import javax.smartcardio.Card;
-
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import com.example.backend.entities.Address;
-import com.example.backend.entities.FavoriteMovie;
-import com.example.backend.entities.Movie;
-import com.example.backend.entities.User;
-import com.example.backend.repositories.UserRepository;
-import com.example.backend.repositories.VerificationTokenRepository;
 import com.example.backend.dtos.AddressDto;
 import com.example.backend.dtos.CardDto;
 import com.example.backend.dtos.MovieDto;
 import com.example.backend.dtos.UpdateUserDto;
 import com.example.backend.dtos.UserInfo;
-import com.example.backend.services.EmailService;
-
+import com.example.backend.entities.Address;
+import com.example.backend.entities.FavoriteMovie;
+import com.example.backend.entities.Movie;
 import com.example.backend.entities.PaymentCard;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.List;
+import com.example.backend.entities.User;
 import com.example.backend.repositories.FavoriteMovieRepo;
 import com.example.backend.repositories.MoviesRepository;
+import com.example.backend.repositories.UserRepository;
 
 @Service
 public class UserService {
