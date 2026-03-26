@@ -192,9 +192,7 @@ export default function ProfilePage() {
       });
 
       if (!res.ok) {
-        const text = await res.text();
-        console.error("Server error (raw):", text);
-        alert("Failed to update profile. Check console for details.");
+        alert("Failed to update profile. Incorrect password or invalid input.");
         return;
       }
 
@@ -320,7 +318,7 @@ export default function ProfilePage() {
             readOnly={!editMode}
             className={`p-2 rounded text-black w-full ${editMode ? "bg-white" : "bg-gray-400"}`}
           />
-          <label className="text-gray-300 font-semibold">Old Password (required for changes)</label>
+          <label className="text-gray-300 font-semibold">Old Password (required for password change)</label>
           <input
             type="password"
             name="oldPassword"

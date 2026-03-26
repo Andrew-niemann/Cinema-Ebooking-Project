@@ -108,8 +108,8 @@ export default function Navbar() {
     setUserRole("");
     setIsDropdownOpen(false);
 
-    // Kick them back to the home page
-    router.push("/");
+    // Kick them back to the home page and refresh
+    window.location.href = "/";
   };
 
   /* Request Password Reset */
