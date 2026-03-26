@@ -108,12 +108,20 @@ export default function Home() {
       </div>
 
       {hasSearched && (
-        <CardRow
-          genre="Search Results"
-          movies={searchResults}
-          favorites={favorites}
-          onToggleFavorite={onToggleFavorite}
-        />
+        <>
+          {searchResults.length > 0 ? (
+            <CardRow
+              genre="Search Results"
+              movies={searchResults}
+              favorites={favorites}
+              onToggleFavorite={onToggleFavorite}
+            />
+          ) : (
+            <p className="text-white text-lg mt-4">
+              No results found.
+            </p>
+          )}
+        </>
       )}
 
       <CardRow
