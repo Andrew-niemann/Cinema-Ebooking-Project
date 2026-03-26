@@ -1,5 +1,6 @@
 import Link from 'next/dist/client/link';
 import Showtimes from "@/components/Showtimes";
+import FavoriteButton from "@/components/FavoriteButton";
 
 // Defining the Movie type for better type safety
 type Movie = {
@@ -39,7 +40,10 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
             <div className="w-full p-4 flex items-start justify-start">
                 <Link href="/" className="text-[#ECDFCC] hover:text-[#C19A6B]">← Back to Homepage</Link>            
             </div>
-            <h1 className="text-4xl text-[#ECDFCC] mb-4">{movie.title}</h1>
+            <div className="flex items-center gap-3 mb-4">
+                <h1 className="text-4xl text-[#ECDFCC]">{movie.title}</h1>
+                <FavoriteButton movieId={movie.id} />
+            </div>
             <div className="flex items-center justify-space-between gap-4 mb-4">
                 <iframe className="w-[400px] h-[225px] mb-4" src={movie.trailerUrl}></iframe>
                 <p className="w-[400px] h-[225px] text-lg text-[#ECDFCC] mb-2">Description: {movie.description}</p>
