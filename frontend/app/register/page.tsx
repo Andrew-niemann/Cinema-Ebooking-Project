@@ -86,8 +86,11 @@ export default function RegisterPage() {
             });
 
             if (response.ok) {
+                const data = await response.json();
+                // Save the token so we can make authenticated requests
+                localStorage.setItem("token", data.token);
                 alert("Account successfully verified! You may now log in.");
-                router.push("/"); 
+                router.push("/");
             } else {
                 setModalMessage("Verification failed.");
             }

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import Seats from '@/components/Seats'; 
 
 type Movie = {
@@ -23,10 +24,12 @@ export default async function BookingPage({
     
     const { date, time } = resolvedSearchParams;
 
+    // Fetch all movies from backend
     const response = await fetch(`http://localhost:8080/api/movies`, { cache: 'no-store' });
     const list: Movie[] = await response.json();
     const movie = list.find((m) => m.id === parseInt(resolvedParams.id));
 
+    // If movie not found, show 404
     if (!movie) return notFound(); 
 
     return (
@@ -67,11 +70,18 @@ export default async function BookingPage({
                 </div>
 
                 {/* Right Side: The Seats Component */}
-                <div className="bg-[#3C3D37] p-8 rounded-xl shadow-2xl w-full max-w-xl">
+                <div className="bg-[#3C3D37] p-8 rounded-xl shadow-2xl w-full max-w-xl flex flex-col items-center">
                     <p className="text-gray-400 mb-6 font-semibold tracking-widest uppercase text-center border-b border-gray-600 pb-4">
                         Select your seats
                     </p>
                     <Seats />
+
+                    {/* Checkout Button */}
+                    <Link href="/checkout">
+                        <button className="mt-8 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-colors">
+                            Proceed to Checkout
+                        </button>
+                    </Link>
                 </div>
 
             </div>
