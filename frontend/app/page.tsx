@@ -1,3 +1,4 @@
+// 
 "use client";
 
 import { useEffect, useState } from "react";
@@ -40,7 +41,6 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         if (data.favorites && Array.isArray(data.favorites)) {
-          // Backend returns a list of MovieDto objects, so map to numeric IDs for consistent lookup.
           setFavorites(data.favorites.map((movie: { id: number }) => movie.id));
         }
       });
