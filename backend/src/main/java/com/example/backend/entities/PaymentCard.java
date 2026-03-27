@@ -1,6 +1,6 @@
 package com.example.backend.entities;
 
-import com.example.backend.CryptoConverter;
+import com.example.backend.security.CryptoConverter;
 
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -23,7 +23,8 @@ public class PaymentCard {
     private String expirationMonth;
     private String expirationYear;
     
-    @Convert(converter = CryptoConverter.class)    private String cvv;
+    @Convert(converter = CryptoConverter.class)    
+    private String cvv;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
