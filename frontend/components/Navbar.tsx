@@ -202,17 +202,40 @@ export default function Navbar() {
                     </button>
 
                     {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-40 bg-[#697565] rounded shadow-lg py-2 z-50">
-                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" onClick={() => router.push("/")}>
-                            Home
-                        </button>
-                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" onClick={() => router.push("/profile")}>
+                    <div className="absolute right-0 mt-2 w-40 bg-[#697565] rounded shadow-lg py-2 z-50 border border-gray-500">
+                        
+                        {/* NEW: ONLY SHOW IF ADMIN */}
+                        {userRole === "ADMIN" && (
+                            <button 
+                                className="block w-full text-left px-4 py-2 text-sm font-bold text-blue-300 duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
+                                onClick={() => { setIsDropdownOpen(false); router.push('/admin'); }}
+                            >
+                                Admin Portal
+                            </button>
+                        )}
+
+                        <button 
+                            className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
+                            onClick={() => { setIsDropdownOpen(false); router.push('/profile'); }}
+                        >
                             Profile
                         </button>
-                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" onClick={() => setIsDropdownOpen(false)}>
+                        
+                        <button 
+                            className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
+                            onClick={() => setIsDropdownOpen(false)}
+                        >
                             Settings
                         </button>
-                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-red-500 hover:text-white" onClick={handleLogout}>
+                        
+                        {/* Divider Line */}
+                        <div className="border-t border-gray-500 my-1"></div>
+
+                        {/* THE REAL LOGOUT BUTTON */}
+                        <button 
+                            className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-red-500 hover:text-white" 
+                            onClick={handleLogout}
+                        >
                             Logout
                         </button>
                     </div>
