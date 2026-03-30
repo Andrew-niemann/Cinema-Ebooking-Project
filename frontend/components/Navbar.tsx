@@ -11,6 +11,7 @@ export default function Navbar() {
   /* Auth State */
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState("");
+  const [userName, setUserName] = useState("User"); // NEW: Track the user's name
 
   /* Dropdown States */
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -26,13 +27,20 @@ export default function Navbar() {
   const [resetCode, setResetCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
+  /* NEW: Verification Modal States */
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+
   /* Check if the user is already logged in when the page loads */
   useEffect(() => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
+    const name = localStorage.getItem("name"); // NEW: Check for name
     if (token) {
         setIsLoggedIn(true);
         if (role) setUserRole(role);
+        if (name) setUserName(name);
     }
   }, []);
 
@@ -56,7 +64,6 @@ export default function Navbar() {
 
         const rawText = await response.text();
         
-        // Parse it into JSON if it exists
         let data: any = {};
         if (rawText) {
             try {
@@ -66,19 +73,21 @@ export default function Navbar() {
             }
         }
 
-        // Handle the response based on the HTTP status code
         if (response.ok) {
-            // Success!
+            // Success! Grab name or fallback to email prefix
+            const displayName = data.name || (data.email ? data.email.split('@')[0] : "User");
+
             localStorage.setItem("token", data.token || "");
             localStorage.setItem("role", data.role || "");
             localStorage.setItem("email", data.email || loginEmail);
+            localStorage.setItem("name", displayName);
 
             setIsLoggedIn(true);
             setUserRole(data.role || "");
+            setUserName(displayName);
             setIsLoginDropdownOpen(false); 
             
             setLoginPassword("");
-            setLoginEmail("");
             setLoginMessage("");
 
             if (data.role === "ADMIN") {
@@ -88,7 +97,28 @@ export default function Navbar() {
             }
             
         } else {
-            setLoginMessage(data.message || rawText || "Invalid email or password.");
+            const errorMessage = data.message || rawText || "";
+
+            // NEW: Check if account is inactive
+            if (errorMessage.toLowerCase().includes("inactive") || errorMessage.toLowerCase().includes("not verified")) {
+                setIsLoginDropdownOpen(false); 
+                setShowVerification(true);     
+                setModalMessage("Sending a new verification code...");
+
+                try {
+                    await fetch('http://localhost:8080/api/auth/resend-code', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: loginEmail })
+                    });
+                    setModalMessage("Account inactive. A new code was sent to your email!");
+                } catch (resendError) {
+                    setModalMessage("Account inactive, but failed to resend code.");
+                }
+
+            } else {
+                setLoginMessage(errorMessage || "Invalid email or password.");
+            }
         }
     } catch (error) {
         console.error("Login error:", error);
@@ -96,19 +126,53 @@ export default function Navbar() {
     }
   };
 
+  /* VERIFY ACCOUNT FETCH */
+  const handleVerify = async () => {
+    if (!loginEmail) {
+        setModalMessage("Please enter your email.");
+        return;
+    }
+    if (!verificationCode) {
+        setModalMessage("Please enter the code.");
+        return;
+    }
+    setModalMessage("Verifying...");
+
+    try {
+        const response = await fetch('http://localhost:8080/api/auth/verify-registration', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: loginEmail, code: verificationCode })
+        });
+
+        if (response.ok) {
+            setModalMessage("Account verified! You can now log in.");
+            setTimeout(() => {
+                setShowVerification(false);
+                setIsLoginDropdownOpen(true);
+                setVerificationCode("");
+                setModalMessage("");
+            }, 2000);
+        } else {
+            setModalMessage("Verification failed. Incorrect code?");
+        }
+    } catch (error) {
+        setModalMessage("Server error during verification.");
+    }
+  };
+
   /* LOGOUT FUNCTION */
   const handleLogout = () => {
-    // Destroy the token to completely cut off API access
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("email");
+    localStorage.removeItem("name");
 
-    // Reset UI
     setIsLoggedIn(false);
     setUserRole("");
+    setUserName("User");
     setIsDropdownOpen(false);
 
-    // Kick them back to the home page
     router.push("/");
   };
 
@@ -132,7 +196,7 @@ export default function Navbar() {
             setLoginMessage("Failed to send reset link.");
         }
     } catch (error) {
-        setLoginMessage("Server error. Is the backend running?");
+        setLoginMessage("Server error.");
     }
   };
 
@@ -182,60 +246,48 @@ export default function Navbar() {
         <Link className="text-xl font-bold tracking-wide hover:text-white transition-colors" href="/" >
             MovieWebsite
         </Link>
-    </div>
+      </div>
 
       {/* Right Side Nav */}
       <div className="flex items-center gap-4">
         {isLoggedIn ? (
 
             /* STATE A: User is Logged In */
-            <div className="flex items-center gap-2">
-                
+            <div className="flex items-center gap-3">
                 <span className="text-sm font-semibold text-gray-400">[{userRole}]</span>
-                <span>Welcome!</span>
+                <span className="text-[#ECDFCC]">Welcome, <span className="font-bold text-white">{userName}</span>!</span>
 
                 <div className="relative">
-                    <button className="bg-[#697565] hover:bg-white hover:text-[#1E201E] text-[#ECDFCC] px-4 py-2 rounded text-sm transition flex items-center gap-2"
+                    <button className="bg-[#697565] hover:bg-white hover:text-[#1E201E] text-[#ECDFCC] px-4 py-2 rounded text-sm transition flex items-center gap-2 font-semibold shadow-md"
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     >
-                        User
+                        Account ▼
                     </button>
 
                     {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-40 bg-[#697565] rounded shadow-lg py-2 z-50 border border-gray-500">
                         
-                        {/* NEW: ONLY SHOW IF ADMIN */}
                         {userRole === "ADMIN" && (
-                            <button 
-                                className="block w-full text-left px-4 py-2 text-sm font-bold text-blue-300 duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
-                                onClick={() => { setIsDropdownOpen(false); router.push('/admin'); }}
-                            >
+                            <button className="block w-full text-left px-4 py-2 text-sm font-bold text-blue-300 duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
+                                onClick={() => { setIsDropdownOpen(false); router.push('/admin'); }}>
                                 Admin Portal
                             </button>
                         )}
 
-                        <button 
-                            className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
-                            onClick={() => { setIsDropdownOpen(false); router.push('/profile'); }}
-                        >
+                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
+                            onClick={() => { setIsDropdownOpen(false); router.push('/profile'); }}>
                             Profile
                         </button>
                         
-                        <button 
-                            className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
-                            onClick={() => setIsDropdownOpen(false)}
-                        >
+                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
+                            onClick={() => setIsDropdownOpen(false)}>
                             Settings
                         </button>
                         
-                        {/* Divider Line */}
                         <div className="border-t border-gray-500 my-1"></div>
 
-                        {/* THE REAL LOGOUT BUTTON */}
-                        <button 
-                            className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-red-500 hover:text-white" 
-                            onClick={handleLogout}
-                        >
+                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-red-500 hover:text-white" 
+                            onClick={handleLogout}>
                             Logout
                         </button>
                     </div>
@@ -256,7 +308,6 @@ export default function Navbar() {
                     Login
                 </button>
 
-                {/* Login Dropdown Menu */}
                 {isLoginDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-64 bg-[#697565] rounded shadow-lg p-4 z-50 flex flex-col gap-3 border border-gray-500">
                         
@@ -278,7 +329,6 @@ export default function Navbar() {
                                     </div>
                                 </div>
                                 
-                                {/* Login Button */}
                                 <button className="w-full bg-[#3C3D37] hover:bg-[#1E201E] text-white py-2 rounded transition-colors font-semibold mt-1"
                                     onClick={handleLogin}
                                 >
@@ -308,11 +358,24 @@ export default function Navbar() {
                         )}
 
                         {resetStep === 0 && (
-                            <div className="text-center text-sm text-[#ECDFCC] mt-2 border-t border-gray-500 pt-3">
-                                Don't have an account? <br/>
-                                <Link href="/register" className="font-bold hover:text-white hover:underline transition-colors" onClick={() => setIsLoginDropdownOpen(false)}>
-                                    Register here
-                                </Link>
+                            <div className="text-center text-sm text-[#ECDFCC] mt-2 border-t border-gray-500 pt-3 flex flex-col gap-2">
+                                {/* NEW: Manual Verify Account Button */}
+                                <button 
+                                    className="font-bold hover:text-white transition-colors"
+                                    onClick={() => {
+                                        setIsLoginDropdownOpen(false);
+                                        setShowVerification(true);
+                                        setModalMessage("");
+                                    }}
+                                >
+                                    Verify Account
+                                </button>
+                                <span>
+                                    <p>Don't have an account?</p>{' '}
+                                    <Link href="/register" className="font-bold hover:text-white hover:underline transition-colors" onClick={() => setIsLoginDropdownOpen(false)}>
+                                        Register here
+                                    </Link>
+                                </span>
                             </div>
                         )}
                     </div>
@@ -320,6 +383,75 @@ export default function Navbar() {
             </div>
             )}
         </div>
+
+      {/* --- INACTIVE / MANUAL VERIFICATION POPUP MODAL --- */}
+      {showVerification && (
+          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[100] p-4">
+              <div className="bg-[#3C3D37] p-8 rounded-xl shadow-2xl max-w-sm w-full flex flex-col items-center gap-4 border border-gray-600">
+                  
+                  <h2 className="text-2xl font-bold text-[#ECDFCC]">Verify Account</h2>
+                  <p className="text-sm text-center text-[#ECDFCC] mb-2">
+                      Enter your email and the 6-digit code we sent you.
+                  </p>
+
+                  <input 
+                      type="email" 
+                      placeholder="Email Address" 
+                      value={loginEmail} 
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      className="w-full p-3 bg-[#ECDFCC] text-[#1E201E] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 font-semibold"
+                  />
+
+                  <input 
+                      type="text" 
+                      maxLength={6}
+                      placeholder="000000" 
+                      value={verificationCode} 
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      className="w-full p-4 text-center tracking-[0.5em] text-2xl bg-[#ECDFCC] text-[#1E201E] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 font-bold"
+                  />
+
+                  <button 
+                      onClick={async () => {
+                          if (!loginEmail) return setModalMessage("Please enter your email first.");
+                          setModalMessage("Sending new code...");
+                          try {
+                              await fetch('http://localhost:8080/api/auth/resend-code', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ email: loginEmail })
+                              });
+                              setModalMessage("A new code was sent to your email!");
+                          } catch (e) { setModalMessage("Failed to resend code."); }
+                      }}
+                      className="text-sm text-blue-300 hover:text-blue-100 transition-colors"
+                  >
+                      Resend Code
+                  </button>
+
+                  <button 
+                      onClick={handleVerify}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors mt-2"
+                  >
+                      Activate Account
+                  </button>
+
+                  <button 
+                      onClick={() => { setShowVerification(false); setModalMessage(""); }}
+                      className="w-full bg-transparent border border-gray-400 hover:bg-gray-500 text-white py-2 rounded-lg transition-colors text-sm mt-1"
+                  >
+                      Cancel
+                  </button>
+
+                  {modalMessage && (
+                      <p className={`text-sm font-bold mt-2 text-center ${modalMessage.includes("verified") || modalMessage.includes("sent") ? "text-green-400" : "text-red-400"}`}>
+                          {modalMessage}
+                      </p>
+                  )}
+                  
+              </div>
+          </div>
+      )}
     </nav>
   );
 }
