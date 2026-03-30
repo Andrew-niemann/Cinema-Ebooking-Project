@@ -172,8 +172,9 @@ export default function Navbar() {
     setUserRole("");
     setUserName("User");
     setIsDropdownOpen(false);
-
-    router.push("/");
+    
+    // Kick them back to the home page and refresh
+    window.location.href = "/";
   };
 
   /* Request Password Reset */

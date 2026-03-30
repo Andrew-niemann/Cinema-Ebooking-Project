@@ -3,20 +3,24 @@ package com.example.backend.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.example.backend.services.AuthService;
 import com.example.backend.dtos.AuthDtos.AuthResponse;
 import com.example.backend.dtos.AuthDtos.LoginRequest;
 import com.example.backend.dtos.AuthDtos.RegisterRequest;
 import com.example.backend.dtos.AuthDtos.ResetPasswordRequest;
 import com.example.backend.dtos.AuthDtos.VerifyPassword;
 import com.example.backend.dtos.AuthDtos.VerifyRequest;
-import com.example.backend.entities.User;
-import com.example.backend.services.JwtService;
-import com.mysql.cj.x.protobuf.MysqlxSession.Reset;
 import com.example.backend.repositories.UserRepository;
 import com.example.backend.repositories.VerificationTokenRepository;
+import com.example.backend.services.AuthService;
+
 import jakarta.transaction.Transactional;
 
 @CrossOrigin(origins = "*") // <- allows requests from any origin
@@ -94,4 +98,3 @@ public class AuthController {
     }
 
 }
-

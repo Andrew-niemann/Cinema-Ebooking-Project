@@ -1,4 +1,4 @@
-package com.example.backend;
+package com.example.backend.config;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

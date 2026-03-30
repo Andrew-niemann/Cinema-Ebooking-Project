@@ -1,28 +1,38 @@
-/* components/CardRow.tsx */
-
-import Card from '@/components/Card';
+import Card from "@/components/Card";
 
 type Movie = {
-    id: number;
-    title: string;
-    posterUrl: string;
-    trailerUrl: string;
-    genre: string;
-    rating: string;
-    description: string;
-    status: string;
-    showings: string;
+  id: number;
+  title: string;
+  posterUrl: string;
+  trailerUrl: string;
+  genre: string;
+  rating: string;
+  description: string;
+  status: string;
+  showings: string;
 };
 
-export default function CardRow(props: { genre: string, movies?: Movie[] }) {
-    return (
-        <div className="m-4">
-            <h1 className="text-[#ECDFCC] text-3xl m-2 overflow-hidden">{props.genre}</h1>
-            <div className="flex overflow-hidden">
-                {props.movies?.map((movie, index) => (
-                    <Card key={index} movie={movie} />
-                ))}
-            </div>
-        </div>
-    )
+type CardRowProps = {
+  genre: string;
+  movies?: Movie[];
+  favorites: number[];
+  onToggleFavorite: (movieId: number) => void;
+};
+
+export default function CardRow({ genre, movies, favorites, onToggleFavorite }: CardRowProps) {
+  return (
+    <div className="m-4">
+      <h1 className="text-[#ECDFCC] text-3xl m-2 overflow-hidden">{genre}</h1>
+      <div className="flex overflow-hidden">
+        {movies?.map((movie) => (
+          <Card
+            key={movie.id}
+            movie={movie}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }

@@ -33,8 +33,14 @@ public class Movie {
 
     private String status;
 
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Show> bookings = new ArrayList<>();
+
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true) 
     private List<FavoriteMovie> favoritedBy = new ArrayList<>();
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Show> shows = new ArrayList<>();
 
     @Column(columnDefinition = "TEXT")
     private String showings; // Format:  "2-23-2026 7:00pm 9:00pm, 2-24-2026 7:00pm 9:00pm"
