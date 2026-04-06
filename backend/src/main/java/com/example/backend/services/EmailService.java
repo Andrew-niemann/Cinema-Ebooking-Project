@@ -31,8 +31,8 @@ public class EmailService {
             );
         }
         if (type.equals("update info")) {
-            Emessage.setSubject("Updated Information Notification");
-            Emessage.setText("The following changes to your account have been made:\n\n" + message);
+            Emessage.setSubject("Updated Profile Information Notification");
+            Emessage.setText("Your profile information has been updated successfully. If you did not make this change, please change your password immediately and contact our support team.");
         }
 
         mailSender.send(Emessage);

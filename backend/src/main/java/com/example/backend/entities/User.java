@@ -25,6 +25,7 @@ public class User {
 
     private String name;
     private String phone;
+    private boolean promotionOptIn = false;
 
     @Enumerated(EnumType.STRING)
     private UserStatus status; // ACTIVE / INACTIVE
@@ -119,6 +120,22 @@ public class User {
 
     public void setFavorites(List<FavoriteMovie> favorites) {
         this.favorites = favorites;
+    }
+
+    public List<Booking> getBookings() {
+        return bookings;
+    }
+
+    public void setBookings(List<Booking> bookings) {
+        this.bookings = bookings;
+    }
+
+    public boolean isPromotionOptIn() {
+        return promotionOptIn;
+    }
+
+    public void setPromotionOptIn(boolean promotionOptIn) {
+        this.promotionOptIn = promotionOptIn;
     }
 
 }

@@ -1,4 +1,7 @@
-package com.example.backend.dtos;
+package com.example.backend.dtos.userDtos;
+
+import com.example.backend.dtos.AddressDto;
+import com.example.backend.dtos.CardDto;
 
 public class UpdateUserDto {
     private String name;
@@ -6,7 +9,8 @@ public class UpdateUserDto {
     private String newPassword;
     private String oldPassword;
     private AddressDto address;
-    private CardDto card; // optional
+    private CardDto card;
+    private Boolean promotionOptIn;
 
     // getters/setters
     public String getName() {
@@ -55,6 +59,14 @@ public class UpdateUserDto {
 
     public void setOldPassword(String oldPassword) {
         this.oldPassword = oldPassword;
+    }
+
+    public Boolean isPromotionOptIn() {
+        return promotionOptIn;
+    }
+
+    public void setPromotionOptIn(Boolean promotionOptIn) {
+        this.promotionOptIn = promotionOptIn;
     }
 
     

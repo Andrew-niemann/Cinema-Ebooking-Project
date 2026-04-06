@@ -12,7 +12,8 @@ public class Seat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String seatNumber;
+    private String seat_row;
+    private String seat_number;
 
     @ManyToOne
     @JoinColumn(name = "showroom_id", nullable = false)
@@ -23,12 +24,21 @@ public class Seat {
 
     // Constructors, getters, setters
     public Seat() {}
-    public Seat(String seatNumber, Showroom showroom) {
-        this.seatNumber = seatNumber;
+    public Seat(String row, String seatNumber, Showroom showroom) {
+        this.seat_row = row;
+        this.seat_number = seatNumber;
         this.showroom = showroom;
     }
 
     public Long getId() { return id; }
-    public String getSeatNumber() { return seatNumber; }
+    public String getSeatNumber() { return seat_number; }
     public Showroom getShowroom() { return showroom; }
+    public List<ShowSeat> getShowSeats() { return showSeats; }
+    public void setId(Long id) { this.id = id; }
+    public void setSeatNumber(String seatNumber) { this.seat_number = seatNumber; }
+    public void setRow(String row) { this.seat_row = row; }
+    public String getRow() { return seat_row; }
+    public void setShowroom(Showroom showroom) { this.showroom = showroom; }
+    public void setShowSeats(List<ShowSeat> showSeats) { this.showSeats = showSeats; }
+
 }

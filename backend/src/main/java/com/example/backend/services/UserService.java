@@ -13,8 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.backend.dtos.AddressDto;
 import com.example.backend.dtos.CardDto;
 import com.example.backend.dtos.MovieDto;
-import com.example.backend.dtos.UpdateUserDto;
-import com.example.backend.dtos.UserInfo;
+import com.example.backend.dtos.userDtos.UpdateUserDto;
+import com.example.backend.dtos.userDtos.UserInfo;
 import com.example.backend.entities.Address;
 import com.example.backend.entities.FavoriteMovie;
 import com.example.backend.entities.Movie;
@@ -145,17 +145,17 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String message = "";
-
         // --- Update basic info ---
         if (dto.getName() != null && !dto.getName().isBlank()) {
             user.setName(dto.getName());
-            message += "name: " + dto.getName() + "\n";
         }
 
         if (dto.getPhone() != null && !dto.getPhone().isBlank()) {
             user.setPhone(dto.getPhone());
-            message += "phone: " + dto.getPhone() + "\n";
+        }
+
+        if(dto.isPromotionOptIn() != null) {
+            user.setPromotionOptIn(dto.isPromotionOptIn());
         }
 
         if (dto.getNewPassword() != null && !dto.getNewPassword().isEmpty()) {
@@ -167,27 +167,34 @@ public class UserService {
 
         // --- Address (ONLY ONE) ---
         if (dto.getAddress() != null) {
+
             AddressDto addrDto = dto.getAddress();
 
-            Address address = user.getAddress();
-            if (address == null) {
-                address = new Address();
+            boolean noChange = false;
+            if (user.getAddress().getStreet().equals(addrDto.getStreet()) && user.getAddress().getCity().equals(addrDto.getCity()) && user.getAddress().getState().equals(addrDto.getState()) && user.getAddress().getZip().equals(addrDto.getZip())) {
+                noChange = true;
             }
 
-            if (addrDto.getStreet() != null)
-                address.setStreet(addrDto.getStreet());
+            if (!noChange) {
+                Address address = user.getAddress();
+                if (address == null) {
+                    address = new Address();
+                }
 
-            if (addrDto.getCity() != null)
-                address.setCity(addrDto.getCity());
+                if (addrDto.getStreet() != null)
+                    address.setStreet(addrDto.getStreet());
 
-            if (addrDto.getState() != null)
-                address.setState(addrDto.getState());
+                if (addrDto.getCity() != null)
+                    address.setCity(addrDto.getCity());
 
-            if (addrDto.getZip() != null)
-                address.setZip(addrDto.getZip());
+                if (addrDto.getState() != null)
+                    address.setState(addrDto.getState());
 
-            message += "address: " + address.getStreet() + ", " + address.getCity() + ", " + address.getState() + " " + address.getZip() + "\n";
-            user.setAddress(address); // replaces existing (only one allowed)
+                if (addrDto.getZip() != null)
+                    address.setZip(addrDto.getZip());
+
+                user.setAddress(address); // replaces existing (only one allowed)
+            }       
         }
 
         // --- Cards (MAX 3) ---
@@ -217,7 +224,6 @@ public class UserService {
             card.setExpirationMonth(cardDto.getExpirationMonth());
             card.setCvv(cardDto.getCvv());
 
-            message += "card info: updated\n";
         }
 
         userRepository.save(user);
@@ -259,6 +265,7 @@ public class UserService {
         ))
         .toList();
 
+        String message = "Your profile information has been updated:\n";
         emailService.sendVerificationEmail(user.getEmail(), "update info", message);
 
         return new UserInfo(

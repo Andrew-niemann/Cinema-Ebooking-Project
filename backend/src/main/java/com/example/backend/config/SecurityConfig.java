@@ -33,6 +33,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // allow register/login
                 .requestMatchers("/api/movies/**").permitAll() // allow movie endpoints
+                .requestMatchers("/api/showings/**").permitAll() // allow showings endpoints
+                .requestMatchers("/api/showSeats/**").permitAll() // allow show seats endpoints
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

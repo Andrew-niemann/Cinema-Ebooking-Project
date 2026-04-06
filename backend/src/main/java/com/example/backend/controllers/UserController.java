@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.backend.dtos.UpdateUserDto;
-import com.example.backend.dtos.UserInfo;
+import com.example.backend.dtos.userDtos.UpdateUserDto;
+import com.example.backend.dtos.userDtos.UserInfo;
 import com.example.backend.services.UserService;
 
 @RestController

@@ -11,6 +11,7 @@ public class RegisterRequest {
     private String phone;
     private AddressDto address;
     private CardDto card;
+    private Boolean promotionOptIn;
 
     // getters and setters
 
@@ -31,4 +32,8 @@ public class RegisterRequest {
 
     public CardDto getCard() { return card; }
     public void setCard(CardDto card) { this.card = card; }
+
+    public Boolean getPromotionOptIn() { return promotionOptIn; }
+    public void setPromotionOptIn(Boolean promotionOptIn) { this.promotionOptIn =  promotionOptIn; }
+    public Boolean isPromotionOptIn() { return promotionOptIn; }
 }

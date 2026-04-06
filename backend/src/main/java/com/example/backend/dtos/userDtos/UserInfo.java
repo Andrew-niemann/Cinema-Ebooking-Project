@@ -1,4 +1,4 @@
-package com.example.backend.dtos;
+package com.example.backend.dtos.userDtos;
 
 import java.util.ArrayList;
 
@@ -8,7 +8,9 @@ import com.example.backend.enums.UserStatus;
 import java.util.List;
 import com.example.backend.enums.Role;
 import com.example.backend.entities.Address;
+import com.example.backend.dtos.AddressDto;
 import com.example.backend.dtos.CardDto;
+import com.example.backend.dtos.MovieDto;
 
 public class UserInfo {
     private long id;

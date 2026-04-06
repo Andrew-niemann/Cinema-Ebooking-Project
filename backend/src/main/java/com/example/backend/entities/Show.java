@@ -1,7 +1,6 @@
 package com.example.backend.entities;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +12,8 @@ public class Show {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDateTime startTime;
+    private String startTime;
+    private String showDate;
 
     // ---- Relationships ----
 
@@ -31,20 +31,24 @@ public class Show {
     @OneToMany(mappedBy = "show", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ShowSeat> showSeats = new ArrayList<>();
 
+    @OneToMany(mappedBy = "show", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Booking> bookings = new ArrayList<>();
+
     // ---- Constructors ----
     public Show() {}
 
-    public Show(LocalDateTime startTime, Movie movie, Showroom showroom) {
+    public Show(String startTime, Movie movie, Showroom showroom, String showDate) {
         this.startTime = startTime;
         this.movie = movie;
         this.showroom = showroom;
+        this.showDate = showDate;
     }
 
     // ---- Getters & Setters ----
     public Long getId() { return id; }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public String getStartTime() { return startTime; }
+    public void setStartTime(String startTime) { this.startTime = startTime; }
 
     public Movie getMovie() { return movie; }
     public void setMovie(Movie movie) { this.movie = movie; }
@@ -54,4 +58,7 @@ public class Show {
 
     public List<ShowSeat> getShowSeats() { return showSeats; }
     public void setShowSeats(List<ShowSeat> showSeats) { this.showSeats = showSeats; }
+
+    public String getShowDate() { return showDate; }
+    public void setShowDate(String showDate) { this.showDate = showDate; }
 }

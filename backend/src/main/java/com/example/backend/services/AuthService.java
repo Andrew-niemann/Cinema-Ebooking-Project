@@ -1,13 +1,12 @@
 package com.example.backend.services;
 
-import com.example.backend.dtos.AuthDtos.AuthResponse;
-import com.example.backend.dtos.AuthDtos.LoginRequest;
-import com.example.backend.dtos.AuthDtos.RegisterRequest;
 import com.example.backend.entities.User;
 import com.example.backend.entities.VerificationToken;
 import com.example.backend.repositories.UserRepository;
 import com.example.backend.repositories.VerificationTokenRepository;
 import com.example.backend.services.JwtService;
+
+import jakarta.transaction.Transactional;
 
 import java.util.Optional;
 
@@ -20,10 +19,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.backend.enums.Role;
 import com.example.backend.enums.UserStatus;
-import com.example.backend.dtos.AddressDto;
 import com.example.backend.entities.Address; 
 import com.example.backend.entities.PaymentCard;
+import com.example.backend.dtos.AddressDto;
 import com.example.backend.dtos.CardDto;
+import com.example.backend.dtos.AuthDtos.AuthResponse;
+import com.example.backend.dtos.AuthDtos.LoginRequest;
+import com.example.backend.dtos.AuthDtos.RegisterRequest;
 
 @Service
 public class AuthService {
@@ -59,6 +61,14 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
+        
+        Boolean optIn = request.getPromotionOptIn();
+
+        if (Boolean.TRUE.equals(optIn)) {
+            user.setPromotionOptIn(true);
+        } else {
+            user.setPromotionOptIn(false);
+        }
 
         if (request.getPassword() == null || request.getPassword().trim().isEmpty() || request.getPassword().length() < 6) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Password must be at least 6 characters long");
@@ -117,6 +127,7 @@ public class AuthService {
         
     }
 
+    @Transactional
     public void sendVerificationEmail(User user) {
 
         // delete old codes first
@@ -133,6 +144,7 @@ public class AuthService {
         emailService.sendVerificationEmail(user.getEmail(), "reg ver", code);
     }
 
+    @Transactional
     public AuthResponse verifyEmail(String email, String code) {
 
         // Find token by code + email
@@ -176,6 +188,24 @@ public class AuthService {
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
 
         return new AuthResponse(true, "Login successful", token, user.getEmail(), user.getRole().name());
+    }
+
+    @Transactional
+    public AuthResponse resendVerificationCode(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email not found");
+        }
+
+        User user = userOptional.get();
+
+        if (user.getStatus() == UserStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Account is already active");
+        }
+
+        sendVerificationEmail(user);
+        return new AuthResponse(true, "Verification code resent to email", null, null, null);
     }
 
     public AuthResponse forgotPassword(String email) {

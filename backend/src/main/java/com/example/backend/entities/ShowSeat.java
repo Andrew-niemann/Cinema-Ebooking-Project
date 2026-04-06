@@ -38,4 +38,8 @@ public class ShowSeat {
     public Seat getSeat() { return seat; }
     public boolean isBooked() { return isBooked; }
     public void setBooked(boolean booked) { isBooked = booked; }
+    public List<Ticket> getTickets() { return tickets; }
+    public void setShow(Show show) { this.show = show; }
+    public void setSeat(Seat seat) { this.seat = seat; }
+    public void setTickets(List<Ticket> tickets) { this.tickets = tickets; }
 }

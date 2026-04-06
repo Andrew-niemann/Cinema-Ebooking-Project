@@ -85,6 +85,12 @@ public class AuthController {
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
 
+    @PostMapping("/resend-code")
+    public ResponseEntity<AuthResponse> resendCode(@RequestBody VerifyRequest request) {
+        AuthResponse response = authService.resendVerificationCode(request.getEmail());
+        return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
+    }
+
     @Transactional
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
