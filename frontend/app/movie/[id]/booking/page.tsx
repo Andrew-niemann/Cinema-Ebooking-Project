@@ -85,13 +85,12 @@ export default async function BookingPage({
                         Select your seats
                     </p>
 
-                    <Seats />
-
-                    <Link href="/checkout">
-                        <button className="mt-8 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg">
-                            Proceed to Checkout
-                        </button>
-                    </Link>
+                    <Seats 
+                        showingId={showingId ? parseInt(showingId) : undefined} 
+                        movieId={parseInt(resolvedParams.id)}
+                        date={date}
+                        time={time}
+                    />
                 </div>
             </div>
         </main>

@@ -37,6 +37,23 @@ type Movie = {
   showings: string;
 };
 
+type Ticket = {
+  seatNumber: string;
+  ticketType: string;
+  price: number;
+};
+
+type Booking = {
+  bookingId: number;
+  movieTitle: string;
+  showDate: string;
+  showTime: string;
+  numberOfTickets: number;
+  totalPrice: number;
+  status: string;
+  tickets: Ticket[];
+};
+
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [showCard, setShowCard] = useState(false);
@@ -62,6 +79,7 @@ export default function ProfilePage() {
 
   const [favorites, setFavorites] = useState<number[]>([]);
   const [favoriteMovies, setFavoriteMovies] = useState<Movie[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -119,6 +137,23 @@ export default function ProfilePage() {
       })
       .catch((err) => console.error("Failed to fetch movies:", err));
   }, [favorites]);
+
+  // Fetch user bookings
+  useEffect(() => {
+    if (!token) return;
+
+    fetch("http://localhost:8080/api/bookings/my-bookings", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data: Booking[]) => {
+        setBookings(data);
+      })
+      .catch((err) => console.error("Failed to fetch bookings:", err));
+  }, [token]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -219,6 +254,30 @@ export default function ProfilePage() {
       setFavoriteMovies(favoriteMovies.filter((movie) => movie.id !== movieId));
     } catch (err) {
       console.error("Failed to remove favorite:", err);
+    }
+  };
+
+  const handleCancelBooking = async (bookingId: number) => {
+    if (!token) return;
+
+    if (!confirm("Are you sure you want to cancel this booking?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/bookings/delete-booking/${bookingId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        // Remove the cancelled booking from state
+        setBookings(bookings.filter(booking => booking.bookingId !== bookingId));
+        alert("Booking cancelled successfully!");
+      } else {
+        alert("Failed to cancel booking. It may not exist or you may not have permission.");
+      }
+    } catch (err) {
+      console.error("Failed to cancel booking:", err);
+      alert("Server error. Make sure your backend is running.");
     }
   };
 
@@ -419,6 +478,62 @@ export default function ProfilePage() {
           />
         ) : (
           <p className="text-[#ECDFCC]">You have not favorited any movies yet.</p>
+        )}
+      </div>
+
+      {/* My Bookings */}
+      <div className="w-full max-w-6xl">
+        <h2 className="text-3xl text-[#ECDFCC] mb-4">My Bookings</h2>
+        {bookings.length > 0 ? (
+          <div className="grid gap-4">
+            {bookings.map((booking) => (
+              <div key={booking.bookingId} className="bg-[#3C3D37] p-6 rounded-xl shadow-2xl">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-[#ECDFCC] mb-2">{booking.movieTitle}</h3>
+                    <p className="text-[#ECDFCC] mb-1">
+                      <span className="font-semibold">Date:</span> {booking.showDate}
+                    </p>
+                    <p className="text-[#ECDFCC] mb-1">
+                      <span className="font-semibold">Time:</span> {booking.showTime}
+                    </p>
+                    <p className="text-[#ECDFCC] mb-1">
+                      <span className="font-semibold">Tickets:</span> {booking.numberOfTickets}
+                    </p>
+                    <p className="text-[#ECDFCC] mb-3">
+                      <span className="font-semibold">Total Price:</span> ${booking.totalPrice.toFixed(2)}
+                    </p>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {booking.tickets.map((ticket, idx) => (
+                        <span key={idx} className="bg-[#697565] text-[#ECDFCC] px-3 py-1 rounded-full text-sm">
+                          {ticket.seatNumber} ({ticket.ticketType})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      booking.status === 'CONFIRMED' ? 'bg-green-600 text-white' :
+                      booking.status === 'CANCELLED' ? 'bg-red-600 text-white' :
+                      'bg-yellow-600 text-white'
+                    }`}>
+                      {booking.status}
+                    </span>
+                    {booking.status !== 'CANCELLED' && (
+                      <button
+                        onClick={() => handleCancelBooking(booking.bookingId)}
+                        className="block mt-2 bg-red-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-red-600 transition-colors text-sm"
+                      >
+                        Cancel Booking
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[#ECDFCC]">You have no bookings yet.</p>
         )}
       </div>
     </main>

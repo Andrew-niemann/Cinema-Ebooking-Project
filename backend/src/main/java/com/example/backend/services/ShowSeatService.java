@@ -1,15 +1,16 @@
 package com.example.backend.services;
 
-import com.example.backend.dtos.ShowSeatDto;
-import com.example.backend.dtos.ShowSeatResponse;
-import com.example.backend.entities.ShowSeat;
-import com.example.backend.repositories.ShowSeatRepository;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.example.backend.dtos.ShowSeatDto;
+import com.example.backend.dtos.ShowSeatResponse;
+import com.example.backend.entities.ShowSeat;
+import com.example.backend.repositories.ShowSeatRepository;
 
 @Service
 public class ShowSeatService {

@@ -75,7 +75,7 @@ export default async function MoviePage({
             <p className="text-[#ECDFCC]">Rating: {movie.rating}</p>
             <p className="text-[#ECDFCC]">Status: {movie.status}</p>
 
-            {/* SHOWTIMES (FIXED) */}
+            {/* Showtimes */}
             <Showtimes movieId={movie.id} />
         </main>
     );

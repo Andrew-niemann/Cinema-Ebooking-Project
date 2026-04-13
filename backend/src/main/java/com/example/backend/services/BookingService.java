@@ -1,34 +1,31 @@
 package com.example.backend.services;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.backend.dtos.BookingListDto;
 import com.example.backend.dtos.BookingRequestDto;
+import com.example.backend.dtos.BookingResponseDto;
 import com.example.backend.dtos.SeatSelectionDto;
 import com.example.backend.dtos.SeatSummaryDto;
 import com.example.backend.dtos.ticketDto;
 import com.example.backend.entities.Booking;
+import com.example.backend.entities.Show;
 import com.example.backend.entities.ShowSeat;
 import com.example.backend.entities.Ticket;
-import com.example.backend.repositories.ShowSeatRepository;
-import com.example.backend.repositories.BookingRepository;
-import com.example.backend.dtos.BookingResponseDto;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.Authentication;
 import com.example.backend.entities.User;
 import com.example.backend.enums.BookingStatus;
 import com.example.backend.enums.TicketType;
-import com.example.backend.dtos.userDtos.UserInfo;
-import com.example.backend.repositories.UserRepository;
-import com.example.backend.entities.Show;
+import com.example.backend.repositories.BookingRepository;
 import com.example.backend.repositories.ShowRepository;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.example.backend.repositories.ShowSeatRepository;
+import com.example.backend.repositories.UserRepository;
 
 
 @Service
@@ -100,7 +97,7 @@ public class BookingService {
 
         List<SeatSummaryDto> seatSummaries = new ArrayList<>();
 
-        // 🔥 Create tickets
+        // Create tickets
         for (SeatSelectionDto seatDto : request.getSeats()) {
 
             ShowSeat seat = selectedSeats.stream()
@@ -125,6 +122,7 @@ public class BookingService {
 
             // Lock seat
             seat.setBooked(true);
+            showSeatRepository.save(seat);
 
             // Build response DTO
             seatSummaries.add(new SeatSummaryDto(
@@ -141,7 +139,6 @@ public class BookingService {
         booking.setDiscountApplied(0);
 
         bookingRepository.save(booking);
-        showSeatRepository.saveAll(selectedSeats);
 
         // 🔹 Build response
         return new BookingResponseDto(
