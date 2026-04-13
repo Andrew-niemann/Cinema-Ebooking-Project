@@ -1,65 +1,72 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link"; 
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
-type ShowtimesProps = {
-    rawShowings: string | undefined;
-    movieId: number; 
+type Showing = {
+    showId: number;
+    showDate: string;
+    startTime: string;
+    showroomId: number;
 };
 
-export default function Showtimes({ rawShowings, movieId }: ShowtimesProps) {
-    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+export default function Showtimes({ movieId }: { movieId: number }) {
+    const [showings, setShowings] = useState<Showing[]>([]);
 
-    if (!rawShowings) return <p className="text-gray-400">No showtimes available.</p>;
+    useEffect(() => {
+        if (!movieId) return;
 
-    const schedule = rawShowings.split(',').map(chunk => {
-        const cleanChunk = chunk.trim();
-        const firstSpace = cleanChunk.indexOf(' '); 
-        const date = cleanChunk.substring(0, firstSpace);
-        const timeString = cleanChunk.substring(firstSpace + 1);
-        const times = timeString.match(/\d{1,2}:\d{2}\s[AP]M/g) || []; 
-        return { date, times };
-    });
+        fetch(`http://localhost:8080/api/showings/get-showings/${movieId}`)
+            .then((res) => {
+                if (!res.ok) {
+                    setShowings([]);
+                    return null;
+                }
+                return res.json();
+            })
+            .then((data) => {
+                if (!data) return;
+                const list = Array.isArray(data)
+                    ? data
+                    : data.showings || [];
+                setShowings(list);
+            })
+            .catch(() => setShowings([]));
+    }, [movieId]);
 
-    const activeDate = selectedDate || schedule[0]?.date;
-    const activeTimes = schedule.find(s => s.date === activeDate)?.times || [];
+    if (!Array.isArray(showings) || showings.length === 0) {
+        return <p className="text-gray-400">No showtimes available.</p>;
+    }
+
+    const uniqueDates = [...new Set(showings.map((s) => s.showDate))];
 
     return (
         <div className="mt-8 bg-[#3C3D37] p-6 rounded-xl shadow-lg w-full max-w-2xl">
-            <h3 className="text-xl text-[#ECDFCC] mb-4 font-bold">1. Select a Date</h3>
-            
-            {/* DATE TABS */}
-            <div className="flex flex-wrap gap-2 border-b border-gray-600 pb-4 mb-4">
-                {schedule.map((day) => (
-                    <button
-                        key={day.date}
-                        onClick={() => setSelectedDate(day.date)}
-                        className={`px-4 py-2 rounded-t-lg font-bold transition-colors ${
-                            activeDate === day.date
-                                ? "bg-[#697565] text-white" 
-                                : "text-gray-400 hover:text-white"
-                        }`}
-                    >
-                        {day.date}
-                    </button>
-                ))}
-            </div>
+            <h3 className="text-xl text-[#ECDFCC] mb-4 font-bold">
+                Select Showtime
+            </h3>
 
-            <h3 className="text-xl text-[#ECDFCC] mb-4 font-bold">2. Select a Time to Book</h3>
-            
-            {/* TIME LINKS */}
-            <div className="flex flex-wrap gap-3">
-                {activeTimes.map((time) => (
-                    <Link
-                        key={time}
-                        href={`/movie/${movieId}/booking?date=${activeDate}&time=${time}`}
-                        className="bg-[#1E201E] text-[#ECDFCC] border border-[#697565] hover:bg-white hover:text-black px-4 py-2 rounded-md font-bold transition-colors duration-200"
-                    >
-                        {time}
-                    </Link>
-                ))}
-            </div>
+            {uniqueDates.map((date) => {
+                const showingsForDate = showings.filter((s) => s.showDate === date);
+                return (
+                    <div key={`date-${date}`} className="mb-6">
+                        <h4 className="text-lg text-[#ECDFCC] mb-2 font-semibold">
+                            {date}
+                        </h4>
+                        <div className="flex flex-wrap gap-3">
+                            {showingsForDate.map((s) => (
+                                <Link
+                                    key={`showing-${s.showId}`}
+                                    href={`/movie/${movieId}/booking?showingId=${s.showId}&date=${encodeURIComponent(s.showDate)}&time=${encodeURIComponent(s.startTime)}`}
+                                    className="bg-[#1E201E] text-[#ECDFCC] border border-[#697565] hover:bg-white hover:text-black px-4 py-2 rounded-md font-bold"
+                                >
+                                    {s.showDate} {s.startTime}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })}
         </div>
     );
 }
