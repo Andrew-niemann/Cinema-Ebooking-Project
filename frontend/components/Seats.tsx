@@ -68,6 +68,7 @@ export default function Seats({
             return;
         }
 
+        // Save checkout data first
         localStorage.setItem(
             "checkoutData",
             JSON.stringify({
@@ -79,7 +80,12 @@ export default function Seats({
             })
         );
 
-        window.location.href = "/checkout";
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("You must be logged in to proceed to checkout. Please log in using the login button in the top right.");
+        }
+
+        window.location.href = "/order-summary";
     };
 
     // Price calculation

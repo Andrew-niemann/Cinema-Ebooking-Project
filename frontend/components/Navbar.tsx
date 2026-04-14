@@ -90,6 +90,17 @@ export default function Navbar() {
             setLoginPassword("");
             setLoginMessage("");
 
+            // Check if user was in the middle of checkout
+            const checkoutData = localStorage.getItem("checkoutData");
+            if (checkoutData) {
+                if (typeof window !== "undefined" && window.location.pathname === "/order-summary") {
+                    window.location.reload();
+                    return;
+                }
+                router.push("/order-summary");
+                return;
+            }
+
             if (data.role === "ADMIN") {
                 router.push("/admin"); 
             } else {
@@ -99,7 +110,7 @@ export default function Navbar() {
         } else {
             const errorMessage = data.message || rawText || "";
 
-            // NEW: Check if account is inactive
+            // Check if account is inactive
             if (errorMessage.toLowerCase().includes("inactive") || errorMessage.toLowerCase().includes("not verified")) {
                 setIsLoginDropdownOpen(false); 
                 setShowVerification(true);     

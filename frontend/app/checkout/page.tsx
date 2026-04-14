@@ -174,7 +174,9 @@ export default function CheckoutPage() {
         <main className="min-h-screen bg-[#1E201E] text-[#ECDFCC] flex flex-col items-center p-8">
 
             {/* Header */}
-            <h1 className="text-4xl font-bold mb-6">Checkout Summary</h1>
+            <h1 className="text-4xl font-bold mb-6">Payment</h1>
+
+            <p className="text-gray-400 mb-4">Review your payment method and confirm your booking.</p>
 
             <div className="bg-[#3C3D37] p-8 rounded-xl shadow-lg w-full max-w-2xl">
 
