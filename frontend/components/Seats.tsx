@@ -31,6 +31,7 @@ export default function Seats({
     const [activeTicketType, setActiveTicketType] = useState<TicketType>("adult");
     const [selectedSeats, setSelectedSeats] = useState<Record<string, TicketType>>({});
     const [showSeats, setShowSeats] = useState<ShowSeat[]>([]);
+    const [showLoginMessage, setShowLoginMessage] = useState(false);
 
     // Fetch show seats
     useEffect(() => {
@@ -82,7 +83,10 @@ export default function Seats({
 
         const token = localStorage.getItem("token");
         if (!token) {
-            alert("You must be logged in to proceed to checkout. Please log in using the login button in the top right.");
+            setShowLoginMessage(true);
+            localStorage.setItem('loginForCheckout', 'true');
+            window.dispatchEvent(new CustomEvent('openLoginDropdown'));
+            return;
         }
 
         window.location.href = "/order-summary";
@@ -159,6 +163,12 @@ export default function Seats({
                 <p className="text-gray-300">
                     {Object.keys(selectedSeats).length} seats
                 </p>
+
+                {showLoginMessage && (
+                    <p className="text-red-400 mt-2 text-sm">
+                        You must log in to proceed to checkout.
+                    </p>
+                )}
 
                 <button
                     onClick={handleCheckout}

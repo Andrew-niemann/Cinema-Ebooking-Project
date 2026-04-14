@@ -44,6 +44,15 @@ export default function Navbar() {
     }
   }, []);
 
+  /* Listen for open login dropdown event */
+  useEffect(() => {
+    const handleOpenLogin = () => {
+      setIsLoginDropdownOpen(true);
+    };
+    window.addEventListener('openLoginDropdown', handleOpenLogin);
+    return () => window.removeEventListener('openLoginDropdown', handleOpenLogin);
+  }, []);
+
   /* LOGIN FETCH */
   const handleLogin = async () => {
     if (!loginEmail || !loginPassword) {
@@ -92,7 +101,9 @@ export default function Navbar() {
 
             // Check if user was in the middle of checkout
             const checkoutData = localStorage.getItem("checkoutData");
-            if (checkoutData) {
+            const loginForCheckout = localStorage.getItem("loginForCheckout") === "true";
+            if (checkoutData && loginForCheckout) {
+                localStorage.removeItem("loginForCheckout");
                 if (typeof window !== "undefined" && window.location.pathname === "/order-summary") {
                     window.location.reload();
                     return;
