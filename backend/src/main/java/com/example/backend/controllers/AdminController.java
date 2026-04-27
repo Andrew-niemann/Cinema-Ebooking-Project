@@ -9,19 +9,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
 import jakarta.transaction.Transactional;
 
 import com.example.backend.services.AdminService;
 import com.example.backend.dtos.AdminResponse;
 import com.example.backend.dtos.CreateShowDto;
 import com.example.backend.dtos.addMovieDto;
-import com.example.backend.entities.Show;
 
 @CrossOrigin(origins = "*") // <- allows requests from any origin
 @RestController

@@ -12,6 +12,7 @@ public class BookingResponseDto {
     private String movieName;
     private String showDate;
     private String showTime;
+    private Long bookingId;
 
     private List<SeatSummaryDto> seats;
 
@@ -24,7 +25,8 @@ public class BookingResponseDto {
                               String showTime,
                               List<SeatSummaryDto> seats,
                               int totalTickets,
-                              double totalBeforeTax) {
+                              double totalBeforeTax,
+                              Long bookingId) {
         this.success = success;
         this.message = message;
         this.userEmail = userEmail;
@@ -45,4 +47,6 @@ public class BookingResponseDto {
     public List<SeatSummaryDto> getSeats() { return seats; }
     public int getTotalTickets() { return totalTickets; }
     public double getTotalBeforeTax() { return totalBeforeTax; }
+    public Long getBookingId() { return bookingId; }
+    
 }

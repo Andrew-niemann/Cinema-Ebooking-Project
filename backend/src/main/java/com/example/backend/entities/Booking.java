@@ -1,6 +1,8 @@
 package com.example.backend.entities;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -56,20 +58,14 @@ public class Booking {
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
 
+    private LocalDateTime createdAt;
+
     // Constructors
     public Booking() {}
 
     public Booking(User user, PaymentCard paymentCard) {
         this.user = user;
         this.paymentCard = paymentCard;
-    }
-
-    // Automatically generate booking number before persist
-    @PrePersist
-    public void prePersist() {
-        if (bookingNumber == null || bookingNumber.isEmpty()) {
-            bookingNumber = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        }
     }
 
     // --- Getters & Setters ---
@@ -112,5 +108,13 @@ public class Booking {
     public void removeTicket(Ticket ticket) {
         tickets.remove(ticket);
         ticket.setBooking(null);
+    }
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        if (bookingNumber == null || bookingNumber.isEmpty()) {
+            bookingNumber = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        }
     }
 }

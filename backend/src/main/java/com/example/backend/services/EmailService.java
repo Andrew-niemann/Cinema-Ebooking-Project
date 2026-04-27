@@ -13,7 +13,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendVerificationEmail(String toEmail, String type, String message) {
+    public void sendEmail(String toEmail, String type, String message) {
 
         SimpleMailMessage Emessage = new SimpleMailMessage();
         Emessage.setTo(toEmail);
@@ -33,6 +33,10 @@ public class EmailService {
         if (type.equals("update info")) {
             Emessage.setSubject("Updated Profile Information Notification");
             Emessage.setText("Your profile information has been updated successfully. If you did not make this change, please change your password immediately and contact our support team.");
+        }
+        if(type.equals("booking confirmation")) {
+            Emessage.setSubject("Booking Confirmation");
+            Emessage.setText(message);
         }
 
         mailSender.send(Emessage);

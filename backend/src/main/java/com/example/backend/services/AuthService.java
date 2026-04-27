@@ -141,7 +141,7 @@ public class AuthService {
 
         tokenRepository.save(verificationToken);
 
-        emailService.sendVerificationEmail(user.getEmail(), "reg ver", code);
+        emailService.sendEmail(user.getEmail(), "reg ver", code);
     }
 
     @Transactional
@@ -227,7 +227,7 @@ public class AuthService {
         tokenRepository.save(token);
 
         // Send email
-        emailService.sendVerificationEmail(user.getEmail(), "Password Reset", code);
+        emailService.sendEmail(user.getEmail(), "Password Reset", code);
 
         return new AuthResponse(true, "Password reset code sent to email", null, null, null);
     }

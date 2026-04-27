@@ -22,10 +22,12 @@ import com.example.backend.entities.Ticket;
 import com.example.backend.entities.User;
 import com.example.backend.enums.BookingStatus;
 import com.example.backend.enums.TicketType;
+import com.example.backend.factories.TicketFactory;
 import com.example.backend.repositories.BookingRepository;
 import com.example.backend.repositories.ShowRepository;
 import com.example.backend.repositories.ShowSeatRepository;
 import com.example.backend.repositories.UserRepository;
+import com.example.backend.dtos.PaymentDto;
 
 
 @Service
@@ -35,13 +37,15 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ShowRepository showRepository;
+    private final EmailService emailService;
 
     public BookingService(ShowSeatRepository showSeatRepository,
-                          BookingRepository bookingRepository, UserRepository userRepository, ShowRepository showRepository) {
+                          BookingRepository bookingRepository, UserRepository userRepository, ShowRepository showRepository, EmailService emailService) {
         this.showSeatRepository = showSeatRepository;
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.showRepository = showRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -107,16 +111,14 @@ public class BookingService {
 
             TicketType ticketType = TicketType.valueOf(seatDto.getTicketType());
 
-            double price = switch (ticketType) {
-                case ADULT -> 9.0;
-                case SENIOR -> 5.0;
-                case CHILD -> 7.0;
-            };
+            //factory design pattern to decrease coupling 
+            Ticket ticket = TicketFactory.createTicket(
+                    ticketType,
+                    booking,
+                    seat
+            );
 
-            total += price;
-
-            // Create ticket
-            Ticket ticket = new Ticket(booking, seat, price, ticketType);
+            total += ticket.getPrice();
 
             booking.addTicket(ticket);
 
@@ -128,7 +130,7 @@ public class BookingService {
             seatSummaries.add(new SeatSummaryDto(
                     seat.getSeat().getRow() + seat.getSeat().getSeatNumber(),
                     ticketType.name(),
-                    price
+                    ticket.getPrice()
             ));
         }
 
@@ -150,7 +152,8 @@ public class BookingService {
                 selectedSeats.get(0).getShow().getStartTime(),
                 seatSummaries,
                 seatSummaries.size(),
-                total
+                total,
+                booking.getId()
         );
     }
 
@@ -187,7 +190,8 @@ public class BookingService {
                 null,
                 null,
                 0,
-                0
+                0,
+                booking.getId()
         );
     }
 
@@ -223,6 +227,44 @@ public class BookingService {
                 );
             })
             .toList();
-}
+        }
 
+    public BookingResponseDto confirmBooking(PaymentDto request, Authentication authentication) {
+
+        User user = userRepository.findByEmail(authentication.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Booking booking = bookingRepository.findById(request.getBookingId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (!booking.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only confirm your own bookings");
+        }
+
+        booking.setStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(booking);
+
+        String message = String.format(
+            "Dear %s,\n\nYour booking for '%s' on %s at %s has been confirmed.\n\nThank you for choosing our cinema!",
+            user.getName(),
+            booking.getShow().getMovie().getTitle(),
+            booking.getShow().getShowDate(),
+            booking.getShow().getStartTime()
+        );
+        emailService.sendEmail(user.getEmail(), "booking confirmation", message);
+
+        return new BookingResponseDto(
+                true,
+                "Booking confirmed",
+                authentication.getName(),
+                booking.getShow().getMovie().getTitle(),
+                booking.getShow().getShowDate().toString(),
+                booking.getShow().getStartTime().toString(),
+                null,
+                0,
+                0,
+                booking.getId()
+        );
+
+    }
 }

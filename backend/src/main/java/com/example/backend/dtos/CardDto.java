@@ -11,6 +11,9 @@ public class CardDto {
     private String expirationYear;
     private String cvv;
 
+    public CardDto() {
+    }
+
     public CardDto(String digits, String expirationYear, String expirationMonth, String cvv) {
         this.digits = digits;
         this.expirationYear = expirationYear;

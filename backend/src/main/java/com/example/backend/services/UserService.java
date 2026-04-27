@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.Authentication;
 
 import com.example.backend.dtos.AddressDto;
 import com.example.backend.dtos.CardDto;
@@ -266,7 +267,7 @@ public class UserService {
         .toList();
 
         String message = "Your profile information has been updated:\n";
-        emailService.sendVerificationEmail(user.getEmail(), "update info", message);
+        emailService.sendEmail(user.getEmail(), "update info", message);
 
         return new UserInfo(
                 user.getId(),
@@ -279,5 +280,18 @@ public class UserService {
                 cardDtos,
                 favoriteDtos
         );
+    }
+
+    public void generateReccomendations(Authentication auth) {
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Placeholder for actual recommendation logic
+        // In a real application, this would involve analyzing the user's preferences, watch history, etc.
+        // For demonstration, we'll just print a message
+        System.out.println("Generating recommendations for user: " + user.getEmail());
+
+        // You can implement your recommendation algorithm here and save the results to the database if needed
     }
 }
