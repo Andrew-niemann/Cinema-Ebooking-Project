@@ -33,23 +33,48 @@ export default function Seats({
     const [showSeats, setShowSeats] = useState<ShowSeat[]>([]);
     const [showLoginMessage, setShowLoginMessage] = useState(false);
 
-    // Fetch show seats
     useEffect(() => {
         if (!showingId) return;
 
-        fetch(`http://localhost:8080/api/showSeats/get-showSeats/${showingId}?t=${Date.now()}`)
-            .then(res => (res.ok ? res.json() : null))
-            .then(data => {
-                const list = data?.showSeats || [];
-                setShowSeats(Array.isArray(list) ? list : []);
-            })
-            .catch(() => setShowSeats([]));
+        const fetchSeats = () => {
+            fetch(`http://localhost:8080/api/showSeats/get-showSeats/${showingId}?t=${Date.now()}`)
+                .then(res => (res.ok ? res.json() : null))
+                .then(data => {
+                    const list: ShowSeat[] = data?.showSeats || [];
+
+                    // update seat list
+                    setShowSeats(Array.isArray(list) ? list : []);
+
+                    // remove seats that became booked
+                    setSelectedSeats(prev => {
+                        const updated = { ...prev };
+
+                        list.forEach(seat => {
+                            const isBooked = seat.booked ?? seat.isBooked;
+                            if (isBooked && updated[seat.seatIdentifier]) {
+                                delete updated[seat.seatIdentifier];
+                            }
+                        });
+
+                        return updated;
+                    });
+                })
+                .catch(() => setShowSeats([]));
+        };
+
+        // initial fetch
+        fetchSeats();
+
+        // fetch seats every 5 seconds
+        const interval = setInterval(fetchSeats, 5000);
+
+        return () => clearInterval(interval);
     }, [showingId]);
 
     const handleSeatClick = (seat: string) => {
         const seatData = showSeats.find(s => s.seatIdentifier === seat);
-
         const isBooked = seatData?.booked ?? seatData?.isBooked;
+
         if (isBooked) return;
 
         const newSeats = { ...selectedSeats };
@@ -69,7 +94,6 @@ export default function Seats({
             return;
         }
 
-        // Save checkout data first
         localStorage.setItem(
             "checkoutData",
             JSON.stringify({
@@ -92,7 +116,6 @@ export default function Seats({
         window.location.href = "/order-summary";
     };
 
-    // Price calculation
     let totalPrice = 0;
     Object.values(selectedSeats).forEach(type => {
         totalPrice += TICKET_CONFIG[type].price;
@@ -123,7 +146,6 @@ export default function Seats({
                 {showSeats.map(seat => {
                     const isBooked = seat.booked ?? seat.isBooked;
                     const id = seat.seatIdentifier;
-
                     const selectedType = selectedSeats[id];
 
                     if (isBooked) {
