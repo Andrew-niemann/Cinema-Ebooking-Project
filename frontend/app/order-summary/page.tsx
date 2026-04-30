@@ -13,6 +13,7 @@ type CheckoutData = {
     showingId?: number;
     selectedSeats: Record<string, string>;
     bookingId?: number;
+    reservationExpiresAt?: number;
     date?: string;
     time?: string;
     email?: string;
@@ -27,12 +28,61 @@ type Movie = {
     posterUrl?: string;
 };
 
+type BookingTicket = {
+    seatNumber: string;
+    ticketType: string;
+};
+
+type BookingListItem = {
+    bookingId: number;
+    showDate?: string;
+    showTime?: string;
+    status?: string;
+    tickets?: BookingTicket[];
+};
+
+const getAuthHeader = () => {
+    const token = localStorage.getItem("token")?.trim();
+    if (!token) return null;
+
+    return token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+};
+
+const findPendingBookingId = async (checkoutData: CheckoutData, authHeader: string) => {
+    const response = await fetch("http://localhost:8080/api/bookings/my-bookings", {
+        headers: { Authorization: authHeader }
+    });
+
+    if (!response.ok || response.status === 204) return null;
+
+    const bookings: BookingListItem[] = await response.json();
+    const selectedSeatKeys = Object.entries(checkoutData.selectedSeats)
+        .map(([seatNumber, ticketType]) => `${seatNumber}:${ticketType.toUpperCase()}`)
+        .sort();
+
+    const match = bookings.find(booking => {
+        if (booking.status !== "PENDING") return false;
+        if (checkoutData.date && booking.showDate !== checkoutData.date) return false;
+        if (checkoutData.time && booking.showTime !== checkoutData.time) return false;
+
+        const bookingSeatKeys = (booking.tickets || [])
+            .map(ticket => `${ticket.seatNumber}:${ticket.ticketType.toUpperCase()}`)
+            .sort();
+
+        return selectedSeatKeys.length === bookingSeatKeys.length
+            && selectedSeatKeys.every((key, index) => key === bookingSeatKeys[index]);
+    });
+
+    return match?.bookingId ?? null;
+};
+
 export default function OrderSummaryPage() {
     const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
     const [movie, setMovie] = useState<Movie | null>(null);
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
 
     useEffect(() => {
         const savedData = localStorage.getItem("checkoutData");
@@ -58,6 +108,47 @@ export default function OrderSummaryPage() {
             })
             .catch(() => setMovie(null));
     }, []);
+
+    useEffect(() => {
+        if (!checkoutData?.reservationExpiresAt) return;
+
+        let hasExpired = false;
+
+        const expireReservation = async () => {
+            if (hasExpired) return;
+            hasExpired = true;
+
+            const authHeader = getAuthHeader();
+            const bookingId = checkoutData.bookingId ?? (authHeader ? await findPendingBookingId(checkoutData, authHeader) : null);
+
+            if (bookingId && authHeader) {
+                await fetch(`http://localhost:8080/api/bookings/delete-booking/${bookingId}`, {
+                    method: "DELETE",
+                    headers: { Authorization: authHeader }
+                }).catch(() => {});
+            }
+
+            localStorage.removeItem("checkoutData");
+            window.location.assign("/");
+        };
+
+        const updateTimer = () => {
+            const remaining = Math.max(0, Math.ceil((checkoutData.reservationExpiresAt! - Date.now()) / 1000));
+            setSecondsRemaining(remaining);
+
+            if (remaining <= 0) {
+                void expireReservation();
+            }
+        };
+
+        updateTimer();
+        const interval = window.setInterval(updateTimer, 1000);
+
+        return () => {
+            hasExpired = true;
+            window.clearInterval(interval);
+        };
+    }, [checkoutData]);
 
     const seatItems = useMemo(() => {
         if (!checkoutData) return [];
@@ -95,6 +186,14 @@ export default function OrderSummaryPage() {
         window.location.href = "/checkout";
     };
 
+    const formatCountdown = (seconds: number | null) => {
+        if (seconds === null) return "5:00";
+
+        const minutes = Math.floor(seconds / 60);
+        const paddedSeconds = String(seconds % 60).padStart(2, "0");
+        return `${minutes}:${paddedSeconds}`;
+    };
+
     if (!checkoutData) {
         return (
             <main className="min-h-screen bg-[#1E201E] text-[#ECDFCC] flex items-center justify-center p-8">
@@ -112,6 +211,10 @@ export default function OrderSummaryPage() {
                 <h1 className="text-4xl font-bold mb-6">Order Summary</h1>
 
                 <div className="rounded-3xl bg-[#3C3D37] p-8 space-y-6 shadow-xl border border-gray-700">
+                    <section className="rounded-2xl border border-yellow-500/40 bg-[#242623] p-4 text-yellow-200">
+                        Reservation expires in {formatCountdown(secondsRemaining)}
+                    </section>
+
                     <section className="space-y-3">
                         <h2 className="text-2xl font-bold">Movie</h2>
                         <p className="text-gray-300">{movie?.title || "Unknown movie"}</p>

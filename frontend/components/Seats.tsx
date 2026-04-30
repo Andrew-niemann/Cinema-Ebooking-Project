@@ -8,6 +8,9 @@ const TICKET_CONFIG = {
     senior: { price: 5, color: "bg-purple-400 hover:bg-purple-500", label: "Senior ($5)" }
 };
 
+// 5 minutes
+const RESERVATION_DURATION_MS = 1000 * 60 * 5;
+
 type TicketType = keyof typeof TICKET_CONFIG;
 
 type ShowSeat = {
@@ -149,6 +152,7 @@ export default function Seats({
                     showingId,
                     selectedSeats,
                     bookingId,
+                    reservationExpiresAt: Date.now() + RESERVATION_DURATION_MS,
                     date,
                     time
                 })

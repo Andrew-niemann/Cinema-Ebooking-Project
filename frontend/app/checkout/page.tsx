@@ -7,6 +7,7 @@ type CheckoutData = {
     showingId?: number;
     selectedSeats: Record<string, string>;
     bookingId?: number;
+    reservationExpiresAt?: number;
     date?: string;
     time?: string;
 };
@@ -88,6 +89,34 @@ const getAuthHeader = () => {
     return token.startsWith("Bearer ") ? token : `Bearer ${token}`;
 };
 
+const findPendingBookingId = async (checkoutData: CheckoutData, authHeader: string) => {
+    const response = await fetch("http://localhost:8080/api/bookings/my-bookings", {
+        headers: { Authorization: authHeader }
+    });
+
+    if (!response.ok || response.status === 204) return null;
+
+    const bookings: BookingListItem[] = await response.json();
+    const selectedSeatKeys = Object.entries(checkoutData.selectedSeats)
+        .map(([seatNumber, ticketType]) => `${seatNumber}:${ticketType.toUpperCase()}`)
+        .sort();
+
+    const match = bookings.find(booking => {
+        if (booking.status !== "PENDING") return false;
+        if (checkoutData.date && booking.showDate !== checkoutData.date) return false;
+        if (checkoutData.time && booking.showTime !== checkoutData.time) return false;
+
+        const bookingSeatKeys = (booking.tickets || [])
+            .map(ticket => `${ticket.seatNumber}:${ticket.ticketType.toUpperCase()}`)
+            .sort();
+
+        return selectedSeatKeys.length === bookingSeatKeys.length
+            && selectedSeatKeys.every((key, index) => key === bookingSeatKeys[index]);
+    });
+
+    return match?.bookingId ?? null;
+};
+
 export default function CheckoutPage() {
     const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
     const [movie, setMovie] = useState<Movie | null>(null);
@@ -101,6 +130,7 @@ export default function CheckoutPage() {
     const [addCardError, setAddCardError] = useState("");
     const [confirmError, setConfirmError] = useState("");
     const [isConfirming, setIsConfirming] = useState(false);
+    const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
 
     useEffect(() => {
         const data = localStorage.getItem("checkoutData");
@@ -134,6 +164,47 @@ export default function CheckoutPage() {
             .catch(console.error);
         }
     }, []);
+
+    useEffect(() => {
+        if (!checkoutData?.reservationExpiresAt) return;
+
+        let hasExpired = false;
+
+        const expireReservation = async () => {
+            if (hasExpired) return;
+            hasExpired = true;
+
+            const authHeader = getAuthHeader();
+            const bookingId = checkoutData.bookingId ?? (authHeader ? await findPendingBookingId(checkoutData, authHeader) : null);
+
+            if (bookingId && authHeader) {
+                await fetch(`http://localhost:8080/api/bookings/delete-booking/${bookingId}`, {
+                    method: "DELETE",
+                    headers: { Authorization: authHeader }
+                }).catch(() => {});
+            }
+
+            localStorage.removeItem("checkoutData");
+            window.location.assign("/");
+        };
+
+        const updateTimer = () => {
+            const remaining = Math.max(0, Math.ceil((checkoutData.reservationExpiresAt! - Date.now()) / 1000));
+            setSecondsRemaining(remaining);
+
+            if (remaining <= 0) {
+                void expireReservation();
+            }
+        };
+
+        updateTimer();
+        const interval = window.setInterval(updateTimer, 1000);
+
+        return () => {
+            hasExpired = true;
+            window.clearInterval(interval);
+        };
+    }, [checkoutData]);
 
     const handleAddCard = async () => {
         setAddCardError("");
@@ -193,36 +264,6 @@ export default function CheckoutPage() {
         }
     };
 
-    const findPendingBookingId = async (authHeader: string) => {
-        if (!checkoutData) return null;
-
-        const response = await fetch("http://localhost:8080/api/bookings/my-bookings", {
-            headers: { Authorization: authHeader }
-        });
-
-        if (!response.ok || response.status === 204) return null;
-
-        const bookings: BookingListItem[] = await response.json();
-        const selectedSeatKeys = Object.entries(checkoutData.selectedSeats)
-            .map(([seatNumber, ticketType]) => `${seatNumber}:${ticketType.toUpperCase()}`)
-            .sort();
-
-        const match = bookings.find(booking => {
-            if (booking.status !== "PENDING") return false;
-            if (checkoutData.date && booking.showDate !== checkoutData.date) return false;
-            if (checkoutData.time && booking.showTime !== checkoutData.time) return false;
-
-            const bookingSeatKeys = (booking.tickets || [])
-                .map(ticket => `${ticket.seatNumber}:${ticket.ticketType.toUpperCase()}`)
-                .sort();
-
-            return selectedSeatKeys.length === bookingSeatKeys.length
-                && selectedSeatKeys.every((key, index) => key === bookingSeatKeys[index]);
-        });
-
-        return match?.bookingId ?? null;
-    };
-
     const handleConfirmBooking = async () => {
         if (!checkoutData) return;
 
@@ -240,7 +281,7 @@ export default function CheckoutPage() {
             return;
         }
 
-        const bookingId = checkoutData.bookingId ?? (await findPendingBookingId(authHeader));
+        const bookingId = checkoutData.bookingId ?? (await findPendingBookingId(checkoutData, authHeader));
         if (!bookingId) {
             setConfirmError("No reserved booking found. Please choose your seats again.");
             return;
@@ -295,6 +336,14 @@ export default function CheckoutPage() {
         }
     };
 
+    const formatCountdown = (seconds: number | null) => {
+        if (seconds === null) return "5:00";
+
+        const minutes = Math.floor(seconds / 60);
+        const paddedSeconds = String(seconds % 60).padStart(2, "0");
+        return `${minutes}:${paddedSeconds}`;
+    };
+
     if (!checkoutData || !movie) {
         return (
             <div className="text-white p-8">
@@ -327,6 +376,9 @@ export default function CheckoutPage() {
             <p className="text-gray-400 mb-4">Review your payment method and confirm your booking.</p>
 
             <div className="bg-[#3C3D37] p-8 rounded-xl shadow-lg w-full max-w-2xl">
+                <div className="mb-6 rounded-lg border border-yellow-500/40 bg-[#242623] p-4 text-yellow-200">
+                    Reservation expires in {formatCountdown(secondsRemaining)}
+                </div>
 
                 {/* Movie info */}
                 <div className="mb-6 border-b border-gray-600 pb-4">
