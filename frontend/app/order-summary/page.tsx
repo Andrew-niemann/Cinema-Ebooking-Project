@@ -83,6 +83,7 @@ export default function OrderSummaryPage() {
     const [message, setMessage] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     useEffect(() => {
         const savedData = localStorage.getItem("checkoutData");
@@ -186,6 +187,42 @@ export default function OrderSummaryPage() {
         window.location.href = "/checkout";
     };
 
+    const handleCancelBooking = async () => {
+        if (!checkoutData || isCancelling) return;
+
+        setMessage("");
+        setIsCancelling(true);
+
+        try {
+            const authHeader = getAuthHeader();
+            if (!authHeader) {
+                throw new Error("Please log in to cancel this booking.");
+            }
+
+            const bookingId = checkoutData.bookingId ?? await findPendingBookingId(checkoutData, authHeader);
+            if (!bookingId) {
+                throw new Error("No reserved booking found to cancel.");
+            }
+
+            const response = await fetch(`http://localhost:8080/api/bookings/delete-booking/${bookingId}`, {
+                method: "DELETE",
+                headers: { Authorization: authHeader }
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || "Unable to cancel this booking.");
+            }
+
+            localStorage.removeItem("checkoutData");
+            window.location.assign("/");
+        } catch (error: unknown) {
+            setMessage(error instanceof Error ? error.message : "Unable to cancel this booking.");
+        } finally {
+            setIsCancelling(false);
+        }
+    };
+
     const formatCountdown = (seconds: number | null) => {
         if (seconds === null) return "5:00";
 
@@ -281,13 +318,23 @@ export default function OrderSummaryPage() {
                         <p className="text-sm text-red-400">{message}</p>
                     )}
 
-                    <button
-                        onClick={handleProceed}
-                        className="w-full rounded-2xl bg-green-600 py-4 text-lg font-bold transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-500"
-                        disabled={!isLoggedIn}
-                    >
-                        Continue to Payment
-                    </button>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <button
+                            onClick={handleCancelBooking}
+                            className="w-full rounded-2xl border border-red-400 py-4 text-lg font-bold text-red-200 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:border-gray-500 disabled:text-gray-400"
+                            disabled={isCancelling}
+                        >
+                            {isCancelling ? "Cancelling..." : "Cancel Booking"}
+                        </button>
+
+                        <button
+                            onClick={handleProceed}
+                            className="w-full rounded-2xl bg-green-600 py-4 text-lg font-bold transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-500"
+                            disabled={!isLoggedIn || isCancelling}
+                        >
+                            Continue to Payment
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>

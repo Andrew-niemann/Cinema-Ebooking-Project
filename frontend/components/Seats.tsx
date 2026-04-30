@@ -104,6 +104,16 @@ export default function Seats({
 
         const token = localStorage.getItem("token");
         if (!token) {
+            localStorage.setItem(
+                "checkoutData",
+                JSON.stringify({
+                    movieId,
+                    showingId,
+                    selectedSeats,
+                    date,
+                    time
+                })
+            );
             setShowLoginMessage(true);
             localStorage.setItem("loginForCheckout", "true");
             window.dispatchEvent(new CustomEvent("openLoginDropdown"));

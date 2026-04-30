@@ -5,6 +5,80 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+const RESERVATION_DURATION_MS = 5 * 60 * 1000;
+
+type CheckoutData = {
+    movieId?: number;
+    showingId?: number;
+    selectedSeats: Record<string, string>;
+    bookingId?: number;
+    reservationExpiresAt?: number;
+    date?: string;
+    time?: string;
+    email?: string;
+};
+
+type ShowSeat = {
+    id: number;
+    seatIdentifier: string;
+};
+
+type BookingResponse = {
+    success?: boolean;
+    message?: string;
+    bookingId?: number;
+    id?: number;
+};
+
+const getAuthHeader = (token: string) => {
+    const trimmedToken = token.trim();
+    return trimmedToken.startsWith("Bearer ") ? trimmedToken : `Bearer ${trimmedToken}`;
+};
+
+const reserveCheckoutSeats = async (checkoutData: CheckoutData, token: string) => {
+    if (!checkoutData.showingId || checkoutData.bookingId) return checkoutData;
+
+    const seatsResponse = await fetch(`http://localhost:8080/api/showSeats/get-showSeats/${checkoutData.showingId}`);
+    const seatsData = await seatsResponse.json();
+    const showSeats: ShowSeat[] = Array.isArray(seatsData?.showSeats) ? seatsData.showSeats : [];
+
+    const seats = Object.entries(checkoutData.selectedSeats).map(([seatId, type]) => {
+        const seat = showSeats.find(showSeat => showSeat.seatIdentifier === seatId);
+        if (!seat) {
+            throw new Error(`Seat ${seatId} is no longer available.`);
+        }
+
+        return {
+            showSeatId: seat.id,
+            ticketType: type.toUpperCase()
+        };
+    });
+
+    const response = await fetch("http://localhost:8080/api/bookings/create-booking", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: getAuthHeader(token)
+        },
+        body: JSON.stringify({
+            showId: checkoutData.showingId,
+            seats
+        })
+    });
+
+    const data: BookingResponse = await response.json().catch(() => ({}));
+
+    if (!response.ok || data.success === false) {
+        throw new Error(data.message || "Unable to reserve those seats. Please choose again.");
+    }
+
+    return {
+        ...checkoutData,
+        bookingId: data.bookingId ?? data.id,
+        reservationExpiresAt: Date.now() + RESERVATION_DURATION_MS
+    };
+};
+
 export default function Navbar() {
   const router = useRouter();
 
@@ -103,12 +177,21 @@ export default function Navbar() {
             const checkoutData = localStorage.getItem("checkoutData");
             const loginForCheckout = localStorage.getItem("loginForCheckout") === "true";
             if (checkoutData && loginForCheckout) {
-                localStorage.removeItem("loginForCheckout");
-                if (typeof window !== "undefined" && window.location.pathname === "/order-summary") {
-                    window.location.reload();
-                    return;
+                try {
+                    const reservedCheckoutData = await reserveCheckoutSeats(JSON.parse(checkoutData), data.token || "");
+                    localStorage.setItem("checkoutData", JSON.stringify(reservedCheckoutData));
+                    localStorage.removeItem("loginForCheckout");
+
+                    if (typeof window !== "undefined" && window.location.pathname === "/order-summary") {
+                        window.location.reload();
+                        return;
+                    }
+
+                    router.push("/order-summary");
+                } catch (error: unknown) {
+                    localStorage.removeItem("loginForCheckout");
+                    setLoginMessage(error instanceof Error ? error.message : "Unable to reserve those seats. Please choose again.");
                 }
-                router.push("/order-summary");
                 return;
             }
 
