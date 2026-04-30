@@ -17,6 +17,13 @@ type ShowSeat = {
     booked?: boolean;
 };
 
+type BookingResponse = {
+    success?: boolean;
+    message?: string;
+    bookingId?: number;
+    id?: number;
+};
+
 export default function Seats({
     showingId,
     movieId,
@@ -32,6 +39,8 @@ export default function Seats({
     const [selectedSeats, setSelectedSeats] = useState<Record<string, TicketType>>({});
     const [showSeats, setShowSeats] = useState<ShowSeat[]>([]);
     const [showLoginMessage, setShowLoginMessage] = useState(false);
+    const [checkoutError, setCheckoutError] = useState("");
+    const [isReserving, setIsReserving] = useState(false);
 
     useEffect(() => {
         if (!showingId) return;
@@ -41,21 +50,16 @@ export default function Seats({
                 .then(res => (res.ok ? res.json() : null))
                 .then(data => {
                     const list: ShowSeat[] = data?.showSeats || [];
-
-                    // update seat list
                     setShowSeats(Array.isArray(list) ? list : []);
 
-                    // remove seats that became booked
                     setSelectedSeats(prev => {
                         const updated = { ...prev };
-
                         list.forEach(seat => {
                             const isBooked = seat.booked ?? seat.isBooked;
                             if (isBooked && updated[seat.seatIdentifier]) {
                                 delete updated[seat.seatIdentifier];
                             }
                         });
-
                         return updated;
                     });
                 })
@@ -64,18 +68,18 @@ export default function Seats({
 
         // initial fetch
         fetchSeats();
-
+        
         // fetch seats every 5 seconds
         const interval = setInterval(fetchSeats, 5000);
-
         return () => clearInterval(interval);
     }, [showingId]);
 
     const handleSeatClick = (seat: string) => {
+        setCheckoutError("");
+
         const seatData = showSeats.find(s => s.seatIdentifier === seat);
         const isBooked = seatData?.booked ?? seatData?.isBooked;
-
-        if (isBooked) return;
+        if (isBooked || isReserving) return;
 
         const newSeats = { ...selectedSeats };
 
@@ -88,32 +92,74 @@ export default function Seats({
         setSelectedSeats(newSeats);
     };
 
-    const handleCheckout = () => {
-        if (Object.keys(selectedSeats).length === 0) {
-            alert("Please select at least one seat.");
-            return;
-        }
+    const handleCheckout = async () => {
+        if (!showingId || isReserving) return;
 
-        localStorage.setItem(
-            "checkoutData",
-            JSON.stringify({
-                movieId,
-                showingId,
-                selectedSeats,
-                date,
-                time
-            })
-        );
+        setCheckoutError("");
+
+        if (Object.keys(selectedSeats).length === 0) return;
 
         const token = localStorage.getItem("token");
         if (!token) {
             setShowLoginMessage(true);
-            localStorage.setItem('loginForCheckout', 'true');
-            window.dispatchEvent(new CustomEvent('openLoginDropdown'));
+            localStorage.setItem("loginForCheckout", "true");
+            window.dispatchEvent(new CustomEvent("openLoginDropdown"));
             return;
         }
 
-        window.location.href = "/order-summary";
+        setIsReserving(true);
+
+        try {
+            const seats = Object.entries(selectedSeats).map(([seatId, type]) => {
+                const seat = showSeats.find(s => s.seatIdentifier === seatId);
+                if (!seat) {
+                    throw new Error(`Seat ${seatId} is no longer available.`);
+                }
+
+                return {
+                    showSeatId: seat.id,
+                    ticketType: type.toUpperCase()
+                };
+            });
+
+            const response = await fetch("http://localhost:8080/api/bookings/create-booking", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    showId: showingId,
+                    seats
+                })
+            });
+
+            const data: BookingResponse = await response.json().catch(() => ({}));
+
+            if (!response.ok || data.success === false) {
+                throw new Error(data.message || "Unable to reserve those seats. Please choose again.");
+            }
+
+            const bookingId = data.bookingId ?? data.id;
+
+            localStorage.setItem(
+                "checkoutData",
+                JSON.stringify({
+                    movieId,
+                    showingId,
+                    selectedSeats,
+                    bookingId,
+                    date,
+                    time
+                })
+            );
+
+            window.location.assign("/order-summary");
+        } catch (error: unknown) {
+            setCheckoutError(error instanceof Error ? error.message : "Unable to reserve those seats. Please try again.");
+        } finally {
+            setIsReserving(false);
+        }
     };
 
     let totalPrice = 0;
@@ -123,7 +169,6 @@ export default function Seats({
 
     return (
         <div className="flex flex-col items-center gap-8 text-[#ECDFCC]">
-
             {/* Ticket selector */}
             <div className="flex gap-4">
                 {(Object.keys(TICKET_CONFIG) as TicketType[]).map(type => (
@@ -150,11 +195,7 @@ export default function Seats({
 
                     if (isBooked) {
                         return (
-                            <button
-                                key={seat.id}
-                                disabled
-                                className="w-10 h-10 bg-black text-white rounded cursor-not-allowed"
-                            >
+                            <button key={seat.id} disabled className="w-10 h-10 bg-black text-white rounded">
                                 {id}
                             </button>
                         );
@@ -178,9 +219,7 @@ export default function Seats({
 
             {/* Checkout */}
             <div className="bg-[#697565] p-6 rounded-lg w-full max-w-sm text-center">
-                <h2 className="text-2xl font-bold">
-                    Total: ${totalPrice}
-                </h2>
+                <h2 className="text-2xl font-bold">Total: ${totalPrice}</h2>
 
                 <p className="text-gray-300">
                     {Object.keys(selectedSeats).length} seats
@@ -192,11 +231,18 @@ export default function Seats({
                     </p>
                 )}
 
+                {checkoutError && (
+                    <p className="text-red-400 mt-2 text-sm">
+                        {checkoutError}
+                    </p>
+                )}
+
                 <button
                     onClick={handleCheckout}
-                    className="mt-4 w-full bg-green-600 hover:bg-green-700 py-3 rounded"
+                    disabled={isReserving}
+                    className="mt-4 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed py-3 rounded"
                 >
-                    Proceed to Checkout
+                    {isReserving ? "Reserving Seats..." : "Proceed to Checkout"}
                 </button>
             </div>
         </div>

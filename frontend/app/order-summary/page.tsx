@@ -12,6 +12,7 @@ type CheckoutData = {
     movieId?: number;
     showingId?: number;
     selectedSeats: Record<string, string>;
+    bookingId?: number;
     date?: string;
     time?: string;
     email?: string;

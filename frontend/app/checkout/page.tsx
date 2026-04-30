@@ -6,16 +6,32 @@ type CheckoutData = {
     movieId?: number;
     showingId?: number;
     selectedSeats: Record<string, string>;
+    bookingId?: number;
     date?: string;
     time?: string;
 };
 
 type Card = {
     id: number;
+    digits: string;
     last4: string;
     brand: string;
-    expiryMonth: number;
-    expiryYear: number;
+    expirationMonth: string;
+    expirationYear: string;
+    cvv?: string;
+};
+
+type UserCard = {
+    id: number;
+    digits?: string;
+    expirationMonth?: string;
+    expirationYear?: string;
+    cvv?: string;
+};
+
+type CardsResponse = {
+    cards?: UserCard[];
+    message?: string;
 };
 
 type Movie = {
@@ -25,11 +41,22 @@ type Movie = {
     status: string;
 };
 
-type ShowSeat = {
-    id: number;
-    seatIdentifier: string;
-    isBooked?: boolean;
-    booked?: boolean;
+type BookingTicket = {
+    seatNumber: string;
+    ticketType: string;
+};
+
+type BookingListItem = {
+    bookingId: number;
+    showDate?: string;
+    showTime?: string;
+    status?: string;
+    tickets?: BookingTicket[];
+};
+
+type BookingResponse = {
+    success?: boolean;
+    message?: string;
 };
 
 const TICKET_PRICES: Record<string, number> = {
@@ -38,10 +65,32 @@ const TICKET_PRICES: Record<string, number> = {
     SENIOR: 5
 };
 
+const toSavedCard = (card: UserCard): Card => {
+    const digits = card.digits || "";
+    const last4 = digits.slice(-4);
+    const brand = digits.startsWith("4") ? "Visa" : digits.startsWith("5") ? "MasterCard" : "Unknown";
+
+    return {
+        id: card.id,
+        digits,
+        last4,
+        brand,
+        expirationMonth: card.expirationMonth || "",
+        expirationYear: card.expirationYear || "",
+        cvv: card.cvv
+    };
+};
+
+const getAuthHeader = () => {
+    const token = localStorage.getItem("token")?.trim();
+    if (!token) return null;
+
+    return token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+};
+
 export default function CheckoutPage() {
     const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
     const [movie, setMovie] = useState<Movie | null>(null);
-    const [showSeats, setShowSeats] = useState<ShowSeat[]>([]);
     const [cards, setCards] = useState<Card[]>([]);
     const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
     const [showAddCardForm, setShowAddCardForm] = useState(false);
@@ -50,6 +99,8 @@ export default function CheckoutPage() {
     const [newCardYear, setNewCardYear] = useState("");
     const [newCardCvv, setNewCardCvv] = useState("");
     const [addCardError, setAddCardError] = useState("");
+    const [confirmError, setConfirmError] = useState("");
+    const [isConfirming, setIsConfirming] = useState(false);
 
     useEffect(() => {
         const data = localStorage.getItem("checkoutData");
@@ -66,36 +117,16 @@ export default function CheckoutPage() {
                 setMovie(found || null);
             });
 
-        // Fetch seats
-        fetch(`http://localhost:8080/api/showSeats/get-showSeats/${parsed.showingId}`)
-            .then(res => (res.ok ? res.json() : null))
-            .then(data => {
-                const list = data?.showSeats || [];
-                setShowSeats(Array.isArray(list) ? list : []);
-            })
-            .catch(() => setShowSeats([]));
-
         // Fetch user's cards
-        const token = localStorage.getItem("token");
-        if (token) {
+        const authHeader = getAuthHeader();
+        if (authHeader) {
             fetch("http://localhost:8080/api/user/info", {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: authHeader }
             })
             .then(res => res.json())
-            .then(data => {
+            .then((data: CardsResponse) => {
                 if (data && data.cards && Array.isArray(data.cards)) {
-                    const processedCards = data.cards.map((card: any) => {
-                        const digits = card.digits || '';
-                        const last4 = digits.slice(-4);
-                        const brand = digits.startsWith('4') ? 'Visa' : digits.startsWith('5') ? 'MasterCard' : 'Unknown';
-                        return {
-                            id: card.id,
-                            last4,
-                            brand,
-                            expiryMonth: parseInt(card.expirationMonth),
-                            expiryYear: parseInt(card.expirationYear)
-                        };
-                    });
+                    const processedCards = data.cards.map(toSavedCard);
                     setCards(processedCards);
                     if (processedCards.length > 0) setSelectedCardId(processedCards[0].id);
                 }
@@ -112,8 +143,8 @@ export default function CheckoutPage() {
             return;
         }
 
-        const token = localStorage.getItem("token");
-        if (!token) {
+        const authHeader = getAuthHeader();
+        if (!authHeader) {
             setAddCardError("Please log in to add a card.");
             return;
         }
@@ -132,30 +163,19 @@ export default function CheckoutPage() {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
+                    Authorization: authHeader
                 },
                 body: JSON.stringify(cardPayload)
             });
 
             if (!response.ok) {
-                const body = await response.json();
+                const body: CardsResponse = await response.json();
                 throw new Error(body.message || "Unable to save card.");
             }
 
-            const data = await response.json();
+            const data: CardsResponse = await response.json();
             if (data && data.cards && Array.isArray(data.cards)) {
-                const processedCards = data.cards.map((card: any) => {
-                    const digits = card.digits || "";
-                    const last4 = digits.slice(-4);
-                    const brand = digits.startsWith("4") ? "Visa" : digits.startsWith("5") ? "MasterCard" : "Unknown";
-                    return {
-                        id: card.id,
-                        last4,
-                        brand,
-                        expiryMonth: parseInt(card.expirationMonth),
-                        expiryYear: parseInt(card.expirationYear)
-                    };
-                });
+                const processedCards = data.cards.map(toSavedCard);
                 setCards(processedCards);
                 if (processedCards.length > 0) {
                     setSelectedCardId(processedCards[processedCards.length - 1].id);
@@ -168,58 +188,111 @@ export default function CheckoutPage() {
             setNewCardYear("");
             setNewCardCvv("");
             setAddCardError("");
-        } catch (error: any) {
-            setAddCardError(error.message || "Failed to add card.");
+        } catch (error: unknown) {
+            setAddCardError(error instanceof Error ? error.message : "Failed to add card.");
         }
     };
 
-    const handleConfirmBooking = () => {
+    const findPendingBookingId = async (authHeader: string) => {
+        if (!checkoutData) return null;
+
+        const response = await fetch("http://localhost:8080/api/bookings/my-bookings", {
+            headers: { Authorization: authHeader }
+        });
+
+        if (!response.ok || response.status === 204) return null;
+
+        const bookings: BookingListItem[] = await response.json();
+        const selectedSeatKeys = Object.entries(checkoutData.selectedSeats)
+            .map(([seatNumber, ticketType]) => `${seatNumber}:${ticketType.toUpperCase()}`)
+            .sort();
+
+        const match = bookings.find(booking => {
+            if (booking.status !== "PENDING") return false;
+            if (checkoutData.date && booking.showDate !== checkoutData.date) return false;
+            if (checkoutData.time && booking.showTime !== checkoutData.time) return false;
+
+            const bookingSeatKeys = (booking.tickets || [])
+                .map(ticket => `${ticket.seatNumber}:${ticket.ticketType.toUpperCase()}`)
+                .sort();
+
+            return selectedSeatKeys.length === bookingSeatKeys.length
+                && selectedSeatKeys.every((key, index) => key === bookingSeatKeys[index]);
+        });
+
+        return match?.bookingId ?? null;
+    };
+
+    const handleConfirmBooking = async () => {
         if (!checkoutData) return;
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Please log in to complete booking");
+        setConfirmError("");
+
+        const authHeader = getAuthHeader();
+        if (!authHeader) {
+            setConfirmError("Please log in to complete booking.");
             return;
         }
 
-        if (!selectedCardId) {
-            alert("Please select a payment method");
+        const selectedCard = cards.find(card => card.id === selectedCardId);
+        if (!selectedCard) {
+            setConfirmError("Please select a payment method.");
             return;
         }
 
-        const seats = Object.entries(checkoutData.selectedSeats)
-            .map(([seatId, type]) => {
-                const seat = showSeats.find(s => s.seatIdentifier === seatId);
-                if (!seat) return null;
+        const bookingId = checkoutData.bookingId ?? (await findPendingBookingId(authHeader));
+        if (!bookingId) {
+            setConfirmError("No reserved booking found. Please choose your seats again.");
+            return;
+        }
 
-                return {
-                    showSeatId: seat.id,
-                    ticketType: type.toUpperCase()
-                };
-            })
-            .filter(Boolean);
+        if (!checkoutData.bookingId) {
+            const updatedCheckoutData = { ...checkoutData, bookingId };
+            setCheckoutData(updatedCheckoutData);
+            localStorage.setItem("checkoutData", JSON.stringify(updatedCheckoutData));
+        }
 
-        fetch("http://localhost:8080/api/bookings/create-booking", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                showId: checkoutData.showingId,
-                seats
-            })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Booking confirmed!");
-                    localStorage.removeItem("checkoutData");
-                    window.location.href = "/";
-                } else {
-                    alert(data.message || "Booking failed");
+        setIsConfirming(true);
+
+        try {
+            const payload = {
+                bookingId,
+                card: {
+                    digits: selectedCard.digits,
+                    expirationMonth: selectedCard.expirationMonth,
+                    expirationYear: selectedCard.expirationYear,
+                    cvv: selectedCard.cvv || ""
                 }
-            });
+            };
+
+            const requestOptions = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: authHeader
+                },
+                body: JSON.stringify(payload)
+            };
+
+            let response = await fetch("http://localhost:8080/api/confirm-booking", requestOptions);
+
+            if (response.status === 401 || response.status === 404) {
+                response = await fetch("http://localhost:8080/api/bookings/confirm-booking", requestOptions);
+            }
+
+            const data: BookingResponse = await response.json().catch(() => ({}));
+
+            if (!response.ok || data.success === false) {
+                throw new Error(data.message || "Booking failed");
+            }
+
+            localStorage.removeItem("checkoutData");
+            window.location.href = "/";
+        } catch (error: unknown) {
+            setConfirmError(error instanceof Error ? error.message : "Booking failed");
+        } finally {
+            setIsConfirming(false);
+        }
     };
 
     if (!checkoutData || !movie) {
@@ -326,7 +399,7 @@ export default function CheckoutPage() {
                                         className="text-[#ECDFCC]"
                                     />
                                     <span>
-                                        {card.brand} ****{card.last4} (Expires {card.expiryMonth}/{card.expiryYear})
+                                        {card.brand} ****{card.last4} (Expires {card.expirationMonth}/{card.expirationYear})
                                     </span>
                                 </label>
                             ))}
@@ -400,12 +473,17 @@ export default function CheckoutPage() {
                     )}
                 </div>
 
+                {confirmError && (
+                    <div className="mb-4 text-red-400 text-sm">{confirmError}</div>
+                )}
+
                 {/* Confirm button */}
                 <button
                     onClick={handleConfirmBooking}
-                    className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold"
+                    disabled={isConfirming}
+                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed py-3 rounded-lg font-bold"
                 >
-                    Confirm Booking
+                    {isConfirming ? "Confirming..." : "Buy Tickets"}
                 </button>
             </div>
         </main>

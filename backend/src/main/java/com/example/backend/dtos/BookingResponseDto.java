@@ -36,6 +36,7 @@ public class BookingResponseDto {
         this.seats = seats;
         this.totalTickets = totalTickets;
         this.totalBeforeTax = totalBeforeTax;
+        this.bookingId = bookingId;
     }
 
     public boolean isSuccess() { return success; }
