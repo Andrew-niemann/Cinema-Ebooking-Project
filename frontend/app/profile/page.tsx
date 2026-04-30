@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import CardRow from "@/components/CardRow";
+import AIRecommendations from "@/components/AIRecommendations"; 
 
 type User = {
   id: number;
@@ -93,8 +94,15 @@ export default function ProfilePage() {
         Authorization: `Bearer ${token}`,
       },
     })
-      .then((res) => res.json())
-      .then((data: User) => {
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        const text = await res.text();
+        // Only parse if there is actually text to parse
+        return text ? JSON.parse(text) : null; 
+      })
+      .then((data: User | null) => {
+        if (!data) return; // Exit if the backend sent nothing
+        
         setUser(data);
         setFormData({
           name: data.name || "",
@@ -130,7 +138,11 @@ export default function ProfilePage() {
     if (favorites.length === 0) return;
 
     fetch("http://localhost:8080/api/movies", { cache: "no-store" })
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        const text = await res.text();
+        return text ? JSON.parse(text) : [];
+      })
       .then((movies: Movie[]) => {
         const favMovies = movies.filter((movie) => favorites.includes(movie.id));
         setFavoriteMovies(favMovies);
@@ -148,9 +160,13 @@ export default function ProfilePage() {
         Authorization: `Bearer ${token}`,
       },
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        const text = await res.text();
+        return text ? JSON.parse(text) : [];
+      })
       .then((data: Booking[]) => {
-        setBookings(data);
+        setBookings(data || []);
       })
       .catch((err) => console.error("Failed to fetch bookings:", err));
   }, [token]);
@@ -183,7 +199,7 @@ export default function ProfilePage() {
     // Only send one card at a time
     let cardToSend = null;
     if (formData.cards.length > 0) {
-      const lastCard = formData.cards[formData.cards.length - 1]; // take the last added card
+      const lastCard = formData.cards[formData.cards.length - 1];
       if (lastCard.digits) {
         cardToSend = { ...lastCard };
       }
@@ -479,6 +495,11 @@ export default function ProfilePage() {
         ) : (
           <p className="text-[#ECDFCC]">You have not favorited any movies yet.</p>
         )}
+      </div>
+
+      {/* AI Recommendations */}
+      <div className="w-full max-w-6xl">
+        <AIRecommendations favorites={favorites} onToggleFavorite={onToggleFavorite} />
       </div>
 
       {/* My Bookings */}

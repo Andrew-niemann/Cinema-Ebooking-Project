@@ -1,9 +1,9 @@
-// 
 "use client";
 
 import { useEffect, useState } from "react";
 import CardRow from "@/components/CardRow";
 import Search from "@/components/Search";
+import { movieService } from "@/utils/MovieProxy";
 
 type Movie = {
   id: number;
@@ -25,50 +25,61 @@ export default function Home() {
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  // Fetch all movies
   useEffect(() => {
-    fetch("http://localhost:8080/api/movies", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => setMovies(data));
+    const fetchMoviesProxy = async () => {
+      try {
+        const data = await movieService.getMovies();
+        setMovies(Array.isArray(data) ? (data as Movie[]) : []);
+      } catch (error) {
+        console.error("Error fetching movies through proxy:", error);
+        setMovies([]);
+      }
+    };
+
+    fetchMoviesProxy();
   }, []);
 
-  // Fetch user favorites
+  // Fetch user favorites safely
   useEffect(() => {
     if (!token) return;
     fetch("http://localhost:8080/api/user/info", {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Network response not ok");
+        const text = await res.text();
+        return text ? JSON.parse(text) : null;
+      })
       .then((data) => {
-        if (data.favorites && Array.isArray(data.favorites)) {
+        if (data?.favorites && Array.isArray(data.favorites)) {
           setFavorites(data.favorites.map((movie: { id: number }) => movie.id));
         }
-      });
+      })
+      .catch((err) => console.error("Failed to fetch favorites:", err));
   }, [token]);
 
-  // Handle search
+  // Handle search with Optional Chaining (?.) to prevent crashes on null fields
   const handleSearch = (term: string, filterType: string, filterValue: string) => {
-    let filtered = movies;
+    let filtered = Array.isArray(movies) ? movies : [];
 
     if (term.trim() !== "") {
       filtered = filtered.filter((movie) =>
-        movie.title.toLowerCase().includes(term.toLowerCase())
+        movie.title?.toLowerCase().includes(term.toLowerCase())
       );
     }
 
     if (filterType === "Genre" && filterValue) {
-      filtered = filtered.filter((movie) => movie.genre.includes(filterValue));
+      filtered = filtered.filter((movie) => movie.genre?.includes(filterValue));
     }
 
     if (filterType === "Date" && filterValue) {
-      filtered = filtered.filter((movie) => movie.status.includes(filterValue));
+      filtered = filtered.filter((movie) => movie.status?.includes(filterValue));
     }
 
     setSearchResults(filtered);
     setHasSearched(true);
   };
 
-  // Toggle favorite at page level
   const onToggleFavorite = async (movieId: number) => {
     if (!token) {
       alert("You must be logged in to favorite a movie.");
@@ -96,9 +107,9 @@ export default function Home() {
     }
   };
 
-  // Filter movies by genre/status
-  const currentlyShowingMovies = movies.filter((m) => m.status.includes("Currently Running"));
-  const comingSoonMovies = movies.filter((m) => m.status.includes("Coming Soon"));
+  const safeMovies = Array.isArray(movies) ? movies : [];
+  const currentlyShowingMovies = safeMovies.filter((m) => m.status?.includes("Currently Running"));
+  const comingSoonMovies = safeMovies.filter((m) => m.status?.includes("Coming Soon"));
   const genres = ["Crime", "Drama", "Action", "Adventure", "Fantasy", "Romance", "Sci-Fi", "Animation"];
 
   return (
@@ -138,7 +149,10 @@ export default function Home() {
       />
 
       {genres.map((g) => {
-        const filtered = movies.filter((m) => m.genre.includes(g));
+        const filtered = safeMovies.filter((m) => m.genre?.includes(g));
+        // Only render the CardRow if there are actually movies in that genre
+        if (filtered.length === 0) return null; 
+
         return (
           <CardRow
             key={g}
