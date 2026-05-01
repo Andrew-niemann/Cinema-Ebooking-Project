@@ -26,6 +26,7 @@ import com.example.backend.dtos.CardDto;
 import com.example.backend.dtos.AuthDtos.AuthResponse;
 import com.example.backend.dtos.AuthDtos.LoginRequest;
 import com.example.backend.dtos.AuthDtos.RegisterRequest;
+import com.example.backend.dtos.AuthDtos.VerifyRequest;
 
 @Service
 public class AuthService {
@@ -145,7 +146,10 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse verifyEmail(String email, String code) {
+    public AuthResponse verifyEmail(VerifyRequest request) {
+
+        String email = request.getEmail();
+        String code = request.getCode();
 
         // Find token by code + email
         VerificationToken token = tokenRepository
@@ -255,5 +259,22 @@ public class AuthService {
         }
 
         return new AuthResponse(true, "Password reset confirmed. Please log in with your new password.", null, null, null);
+    }
+
+    @Transactional
+    public AuthResponse deleteUser(Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+
+        if (userOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        try {
+            tokenRepository.deleteByUser(userOptional.get());
+            userRepository.deleteById(id);
+            return new AuthResponse(true, "User deleted successfully", null, null, null);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error deleting user");
+        }
     }
 }

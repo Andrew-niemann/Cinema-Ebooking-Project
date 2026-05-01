@@ -1,19 +1,15 @@
 package com.example.backend.services;
 
 import com.example.backend.entities.Movie;
-import com.example.backend.repositories.BookingRepository;
 import com.example.backend.repositories.MoviesRepository;
-import com.example.backend.repositories.FavoriteMovieRepo;
 import com.example.backend.dtos.MovieDto;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import com.example.backend.entities.User;
 import com.example.backend.repositories.UserRepository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -24,19 +20,21 @@ public class RecommendationFacade {
     private final RecommendationService recommendationService;
     private final MoviesRepository movieRepository;
     private final UserRepository userRepository;
+    private final AuthenticationService authenticationService;
 
     public RecommendationFacade(RecommendationService recommendationService,
                                 MoviesRepository movieRepository,
-                                UserRepository userRepository) {
+                                UserRepository userRepository,
+                                AuthenticationService authenticationService) {
         this.recommendationService = recommendationService;
         this.movieRepository = movieRepository;
         this.userRepository = userRepository;
+        this.authenticationService = authenticationService;
     }
 
     public List<MovieDto> getRecommendedMovies(Authentication auth) {
 
-        User user = userRepository.findByEmail(auth.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found or not logged in"));
+        User user = authenticationService.getAuthenticatedUser(auth, userRepository);
 
         String aiResponse = recommendationService.recommendMovies(user.getId());
 

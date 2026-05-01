@@ -33,63 +33,31 @@ public class AdminController {
 
     @PostMapping("/add-movie")
     public ResponseEntity<AdminResponse> addMovie(@RequestBody addMovieDto request,  Authentication authentication) {
-        
-        // Check if the user has ROLE_ADMIN
-         boolean isAdmin = authentication.getAuthorities().stream()
-                                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
-        if (!isAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can perform this action");
-        }
-
-        AdminResponse response = adminService.addMovie(request);
+        AdminResponse response = adminService.addMovie(request, authentication);
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
 
     @Transactional
     @DeleteMapping("/delete-movie/{id}")
     public ResponseEntity<AdminResponse> removeMovie(@PathVariable Long id, Authentication authentication) {
-        
-        // Check if the user has ROLE_ADMIN
-         boolean isAdmin = authentication.getAuthorities().stream()
-                                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
-        if (!isAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can perform this action");
-        }
-
-        AdminResponse response = adminService.removeMovie(id);
+        AdminResponse response = adminService.removeMovie(id, authentication);
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
 
     @PostMapping("/create-showing")
     public ResponseEntity<AdminResponse> createShowing(@RequestBody CreateShowDto dto, Authentication authentication) {
-
-        // Check if the user has ROLE_ADMIN
-         boolean isAdmin = authentication.getAuthorities().stream()
-                                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
-
-        if (!isAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can perform this action");
-        }
         
-        AdminResponse response = adminService.createShow(dto);
+        AdminResponse response = adminService.createShow(dto, authentication);
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
     
 
     @DeleteMapping("/delete-showing/{id}")
     public ResponseEntity<AdminResponse> deleteShowing(@PathVariable Long id, Authentication authentication) {
-
-        // Check if the user has ROLE_ADMIN
-         boolean isAdmin = authentication.getAuthorities().stream()
-                                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
-
-        if (!isAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can perform this action");
-        }
         
-        AdminResponse response = adminService.deleteShowing(id);
+        AdminResponse response = adminService.deleteShowing(id, authentication);
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
 

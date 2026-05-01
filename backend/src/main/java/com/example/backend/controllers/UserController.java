@@ -29,16 +29,14 @@ public class UserController {
 
     @GetMapping("/info")
     public ResponseEntity<UserInfo> getMyUserInfo(Authentication authentication) {
-        String email = authentication.getName();
-        UserInfo userInfo = userService.getUserInfo(email);
+        UserInfo userInfo = userService.getUserInfo(authentication.getName());
         return ResponseEntity.ok(userInfo);
     }
 
     @PostMapping("/add-favorite")
     public ResponseEntity<String> addFavoriteMovie(@RequestParam Long movieId, Authentication authentication) {
 
-        String email = authentication.getName(); // JWT gives us the logged-in user's email
-        userService.addFavoriteMovie(email, movieId);
+        userService.addFavoriteMovie(authentication.getName(), movieId);
 
         return ResponseEntity.ok("Movie added to favorites");
     }
@@ -46,17 +44,15 @@ public class UserController {
     @DeleteMapping("/remove-favorite")
     public ResponseEntity<String> removeFavoriteMovie(@RequestParam Long movieId, Authentication authentication) {
 
-        String email = authentication.getName(); // get logged-in user
-        userService.removeFavoriteMovie(email, movieId);
+        userService.removeFavoriteMovie(authentication.getName(), movieId);
 
         return ResponseEntity.ok("Movie removed from favorites");
     }
 
     @PatchMapping("/update-profile")
     public ResponseEntity<UserInfo> updateProfile(@RequestBody UpdateUserDto dto, Authentication auth) {
-        String email = auth.getName();
 
-        UserInfo updatedUser = userService.updateUserProfile(email, dto);
+        UserInfo updatedUser = userService.updateUserProfile(auth.getName(), dto);
 
         return ResponseEntity.ok(updatedUser);
     }

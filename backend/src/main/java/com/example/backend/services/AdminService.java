@@ -19,6 +19,7 @@ import com.example.backend.entities.Seat;
 import com.example.backend.entities.Show;
 import com.example.backend.entities.ShowSeat;
 import com.example.backend.entities.Showroom;
+import org.springframework.security.core.Authentication;
 
 import jakarta.transaction.Transactional;
 
@@ -38,7 +39,15 @@ public class AdminService {
             this.showRepository = showRepository;
         }
 
-        public AdminResponse addMovie(addMovieDto request) {
+        public AdminResponse addMovie(addMovieDto request, Authentication authentication) {
+
+            // Check if the user has ROLE_ADMIN
+            boolean isAdmin = authentication.getAuthorities().stream()
+                                        .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!isAdmin) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can perform this action");
+            }
 
             try {
                 Movie movie = new Movie();
@@ -60,7 +69,15 @@ public class AdminService {
         }
 
         @Transactional
-        public AdminResponse removeMovie(Long id) {
+        public AdminResponse removeMovie(Long id, Authentication authentication) {
+            // Check if the user has ROLE_ADMIN
+            boolean isAdmin = authentication.getAuthorities().stream()
+                                        .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!isAdmin) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can perform this action");
+            }
+
             try {
                 if (!movieRepository.existsById(id)) {
                     return new AdminResponse(false, "Movie not found", null);
@@ -74,7 +91,15 @@ public class AdminService {
         }
 
         @Transactional
-        public AdminResponse createShow(CreateShowDto dto) {
+        public AdminResponse createShow(CreateShowDto dto, Authentication authentication) {
+
+            // Check if the user has ROLE_ADMIN
+            boolean isAdmin = authentication.getAuthorities().stream()
+                                        .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!isAdmin) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can perform this action");
+            }
 
             if (dto.getShowDate() == null) {
                 throw new ResponseStatusException(
@@ -139,7 +164,16 @@ public class AdminService {
         }
 
         @Transactional
-        public AdminResponse deleteShowing(Long id) {
+        public AdminResponse deleteShowing(Long id, Authentication authentication) {
+            
+            // Check if the user has ROLE_ADMIN
+            boolean isAdmin = authentication.getAuthorities().stream()
+                                        .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!isAdmin) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can perform this action");
+            }
+
             try {
                 if (!showRepository.existsById(id)) {
                     return new AdminResponse(false, "Show not found", null);

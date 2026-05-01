@@ -50,10 +50,7 @@ public class AuthController {
     @PostMapping("/verify-registration")
     public ResponseEntity<AuthResponse> verifyRegistration(@RequestBody VerifyRequest request) {
 
-        String email = request.getEmail();
-        String code = request.getCode();
-
-        AuthResponse response = authService.verifyEmail(email, code);
+        AuthResponse response = authService.verifyEmail(request);
 
         if (response.isSuccess()) {
             return ResponseEntity.ok(response);
@@ -63,7 +60,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-        public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+        
         AuthResponse response = authService.login(request);
     
         if (!response.isSuccess()) {
@@ -75,12 +73,14 @@ public class AuthController {
 
     @PostMapping("/password-reset-request")
     public ResponseEntity<AuthResponse> forgotPassword(@RequestBody ResetPasswordRequest request) {
+        
         AuthResponse response = authService.forgotPassword(request.getEmail());
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
 
     @PostMapping("/password-reset-verification")
     public ResponseEntity<AuthResponse> verifyPassword(@RequestBody VerifyPassword request) {
+        
         AuthResponse response = authService.verifyPasswordResetCode(request.getEmail(), request.getCode(), request.getNewPassword());
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
@@ -94,13 +94,13 @@ public class AuthController {
     @Transactional
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
-        if (!userRepository.existsById(id)) {
-            return ResponseEntity.status(404).body("User not found");
+        
+        AuthResponse response = authService.deleteUser(id);
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response.getMessage());
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response.getMessage());
         }
-
-        tokenRepository.deleteByUserId(id);
-        userRepository.deleteById(id);
-        return ResponseEntity.ok("User deleted successfully");
     }
 
 }

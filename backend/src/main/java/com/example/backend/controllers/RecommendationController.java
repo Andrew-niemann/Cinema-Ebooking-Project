@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.example.backend.services.RecommendationFacade;
 
-import jakarta.annotation.Generated;
-
 import com.example.backend.dtos.MovieDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
