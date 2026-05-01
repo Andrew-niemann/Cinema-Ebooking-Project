@@ -42,11 +42,27 @@ export default function Home() {
   // Fetch user favorites safely
   useEffect(() => {
     if (!token) return;
+
     fetch("http://localhost:8080/api/user/info", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
-        if (!res.ok) throw new Error("Network response not ok");
+        if (!res.ok) {
+          const body = await res.text();
+          console.warn(
+            "Failed to fetch favorites:",
+            res.status,
+            res.statusText,
+            body || "No response body"
+          );
+
+          if (res.status === 401 || res.status === 403) {
+            localStorage.removeItem("token");
+          }
+
+          return null;
+        }
+
         const text = await res.text();
         return text ? JSON.parse(text) : null;
       })

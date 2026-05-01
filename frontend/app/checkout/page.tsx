@@ -10,6 +10,7 @@ type CheckoutData = {
     reservationExpiresAt?: number;
     date?: string;
     time?: string;
+    email?: string;
 };
 
 type Card = {
@@ -58,6 +59,26 @@ type BookingListItem = {
 type BookingResponse = {
     success?: boolean;
     message?: string;
+};
+
+type ReceiptData = {
+    bookingId: number;
+    movieTitle: string;
+    movieGenre?: string;
+    movieStatus?: string;
+    showDate?: string;
+    showTime?: string;
+    seats: {
+        seat: string;
+        type: string;
+        price: number;
+    }[];
+    subtotal: number;
+    bookingFee: number;
+    total: number;
+    email?: string;
+    paymentMethod: string;
+    confirmationDate: string;
 };
 
 const TICKET_PRICES: Record<string, number> = {
@@ -328,8 +349,35 @@ export default function CheckoutPage() {
                 throw new Error(data.message || "Booking failed");
             }
 
+            const receiptData: ReceiptData = {
+                bookingId,
+                movieTitle: movie?.title || "Unknown movie",
+                movieGenre: movie?.genre,
+                movieStatus: movie?.status,
+                showDate: checkoutData.date,
+                showTime: checkoutData.time,
+                seats: Object.entries(checkoutData.selectedSeats).map(([seat, type]) => ({
+                    seat,
+                    type,
+                    price: TICKET_PRICES[type.toUpperCase()] || 0
+                })),
+                subtotal: Object.values(checkoutData.selectedSeats).reduce(
+                    (sum, type) => sum + (TICKET_PRICES[type.toUpperCase()] || 0),
+                    0
+                ),
+                bookingFee: 2.5,
+                total: Object.values(checkoutData.selectedSeats).reduce(
+                    (sum, type) => sum + (TICKET_PRICES[type.toUpperCase()] || 0),
+                    2.5
+                ),
+                email: checkoutData.email || localStorage.getItem("email") || undefined,
+                paymentMethod: `${selectedCard.brand} ending in ${selectedCard.last4}`,
+                confirmationDate: new Date().toISOString()
+            };
+
+            localStorage.setItem("orderConfirmation", JSON.stringify(receiptData));
             localStorage.removeItem("checkoutData");
-            window.location.href = "/";
+            window.location.href = "/order-confirmation";
         } catch (error: unknown) {
             setConfirmError(error instanceof Error ? error.message : "Booking failed");
         } finally {

@@ -385,11 +385,6 @@ export default function Navbar() {
                             Profile
                         </button>
                         
-                        <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-gray-100 hover:text-[#1E201E]" 
-                            onClick={() => setIsDropdownOpen(false)}>
-                            Settings
-                        </button>
-                        
                         <div className="border-t border-gray-500 my-1"></div>
 
                         <button className="block w-full text-left px-4 py-2 text-sm text-[#ECDFCC] duration-200 hover:bg-red-500 hover:text-white" 
